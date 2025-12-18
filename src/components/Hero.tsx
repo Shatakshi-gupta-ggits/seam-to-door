@@ -1,7 +1,8 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, Sparkles, Clock, MapPin, Calendar, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { Shield, Sparkles, Clock, ChevronRight } from "lucide-react";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import heroTailor from "@/assets/hero-tailor.jpg";
 
 const trustBadges = [
@@ -10,8 +11,21 @@ const trustBadges = [
   { icon: Clock, label: "48hr Delivery" },
 ];
 
+const serviceOptions = [
+  { label: "Select Garment Type", value: "" },
+  { label: "Pant Alteration", value: "Pant Alteration" },
+  { label: "Shirt Tailoring", value: "Shirt Tailoring" },
+  { label: "Kurti Fitting", value: "Kurti Fitting" },
+  { label: "Blazer Adjustment", value: "Blazer Adjustment" },
+  { label: "Dress Alteration", value: "Dress Alteration" },
+  { label: "Ethnic Jacket", value: "Ethnic Jacket" },
+];
+
 export const Hero = () => {
   const ref = useRef(null);
+  const navigate = useNavigate();
+  const [selectedService, setSelectedService] = useState("");
+  
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"]
@@ -20,10 +34,22 @@ export const Hero = () => {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
+  const handleQuickBook = () => {
+    if (selectedService) {
+      navigate(`/booking?service=${encodeURIComponent(selectedService)}`);
+    } else {
+      navigate('/booking');
+    }
+  };
+
+  const handleBookPickup = () => {
+    navigate('/booking');
+  };
+
   return (
     <section ref={ref} className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Enhanced Background Elements */}
-      <motion.div 
+      <motion.div
         style={{ y, opacity }}
         className="absolute inset-0 overflow-hidden"
       >
@@ -140,7 +166,7 @@ export const Hero = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button variant="gold" size="xl" className="group relative overflow-hidden">
+                <Button variant="gold" size="xl" className="group relative overflow-hidden" onClick={handleBookPickup}>
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                     initial={{ x: "-100%" }}
@@ -202,34 +228,19 @@ export const Hero = () => {
 
                   {/* Form Fields */}
                   <div className="space-y-4">
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input
-                        type="text"
-                        placeholder="Pickup Address"
-                        className="w-full bg-input border border-border rounded-lg pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
-                      />
-                    </div>
-
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input
-                        type="text"
-                        placeholder="Date & Time"
-                        className="w-full bg-input border border-border rounded-lg pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
-                      />
-                    </div>
-
-                    <select className="w-full bg-input border border-border rounded-lg px-4 py-3 text-muted-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer">
-                      <option>Select Garment Type</option>
-                      <option>Pants</option>
-                      <option>Shirt</option>
-                      <option>Dress</option>
-                      <option>Kurti</option>
-                      <option>Blazer</option>
+                    <select 
+                      value={selectedService}
+                      onChange={(e) => setSelectedService(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+                    >
+                      {serviceOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
 
-                    <Button variant="gold" className="w-full" size="lg">
+                    <Button variant="gold" className="w-full" size="lg" onClick={handleQuickBook}>
                       Book Pickup Now
                     </Button>
                   </div>
