@@ -94,7 +94,7 @@ export const Navbar = () => {
               </>
             ) : (
               <Button variant="gold" size="lg" onClick={() => navigate('/auth')}>
-                Login / Sign Up
+               Book Now
               </Button>
             )}
           </div>
