@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm, ValidationError } from '@formspree/react';
-import { ArrowLeft, MapPin, Phone, Calendar, Clock, Link2, CheckCircle, Loader2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, CalendarDays, Clock, Link2, CheckCircle, Loader2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -405,7 +405,7 @@ const Booking = () => {
             {/* Date & Time Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-5 h-5 text-primary" />
+                <CalendarDays className="w-5 h-5 text-primary" />
                 <h3 className="font-display font-semibold text-lg">Pickup Date & Time</h3>
               </div>
 
@@ -421,7 +421,7 @@ const Booking = () => {
                           !date && "text-muted-foreground"
                         )}
                       >
-                        <Calendar className="mr-2 h-4 w-4" />
+                        <CalendarDays className="mr-2 h-4 w-4" />
                         {date ? format(date, "PPP") : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
@@ -444,16 +444,7 @@ const Booking = () => {
                   <Label>Select Time *</Label>
                   <Select value={time} onValueChange={setTime} required>
                     <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Select time slot">
-                        {time ? (
-                          <span className="flex items-center">
-                            <Clock className="mr-2 h-4 w-4" />
-                            {time}
-                          </span>
-                        ) : (
-                          "Select time slot"
-                        )}
-                      </SelectValue>
+                      <SelectValue placeholder="Select time slot" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
                       {timeSlots.map((slot) => (
