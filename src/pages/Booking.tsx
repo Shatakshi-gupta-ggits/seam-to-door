@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useForm, ValidationError } from "@formspree/react";
@@ -14,6 +14,7 @@ import {
   Plus,
   Minus,
   ShoppingCart,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { jsPDF } from "jspdf";
 
 const timeSlots = [
   "09:00 AM",
@@ -166,6 +168,156 @@ const Booking = () => {
     );
   };
 
+  const generateInvoicePDF = useCallback(() => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(139, 92, 42); // Primary gold color
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("MasterFit Alterations", pageWidth / 2, 20, { align: "center" });
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Jabalpur's Trusted Alteration Service", pageWidth / 2, 30, { align: "center" });
+    
+    // Invoice title
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("BOOKING INVOICE", pageWidth / 2, 55, { align: "center" });
+    
+    // Order number and date
+    const orderNumber = `MRF-${format(new Date(), "yyyyMMdd")}-${Math.floor(Math.random() * 10000).toString().padStart(4, "0")}`;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Invoice #: ${orderNumber}`, 20, 65);
+    doc.text(`Date: ${format(new Date(), "PPP")}`, pageWidth - 20, 65, { align: "right" });
+    
+    // Divider
+    doc.setDrawColor(139, 92, 42);
+    doc.setLineWidth(0.5);
+    doc.line(20, 70, pageWidth - 20, 70);
+    
+    let yPos = 85;
+    
+    // Customer Details Section
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(139, 92, 42);
+    doc.text("PICKUP ADDRESS", 20, yPos);
+    yPos += 8;
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`House/Flat: ${formData.houseNumber}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Street/Area: ${formData.streetArea}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Place: ${formData.place}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Pincode: ${formData.pincode}`, 20, yPos);
+    yPos += 12;
+    
+    // Contact Details
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(139, 92, 42);
+    doc.text("CONTACT DETAILS", 20, yPos);
+    yPos += 8;
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Primary Phone: ${formData.phone1}`, 20, yPos);
+    yPos += 6;
+    if (formData.phone2) {
+      doc.text(`Alternate Phone: ${formData.phone2}`, 20, yPos);
+      yPos += 6;
+    }
+    if (formData.mapLink) {
+      doc.text(`Map Link: ${formData.mapLink}`, 20, yPos);
+      yPos += 6;
+    }
+    yPos += 6;
+    
+    // Pickup Schedule
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(139, 92, 42);
+    doc.text("PICKUP SCHEDULE", 20, yPos);
+    yPos += 8;
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date: ${date ? format(date, "PPP") : "Not selected"}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Time: ${time || "Not selected"}`, 20, yPos);
+    yPos += 15;
+    
+    // Services Table
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(139, 92, 42);
+    doc.text("SELECTED SERVICES", 20, yPos);
+    yPos += 10;
+    
+    // Table Header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, yPos - 5, pageWidth - 40, 10, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Service", 25, yPos);
+    doc.text("Qty", 110, yPos);
+    doc.text("Price", 135, yPos);
+    doc.text("Total", 165, yPos);
+    yPos += 10;
+    
+    // Table Rows
+    doc.setFont("helvetica", "normal");
+    selectedServices.forEach((service) => {
+      const lineTotal = service.price * service.quantity;
+      doc.text(service.name, 25, yPos);
+      doc.text(service.quantity.toString(), 110, yPos);
+      doc.text(`₹${service.price}`, 135, yPos);
+      doc.text(`₹${lineTotal}`, 165, yPos);
+      yPos += 8;
+    });
+    
+    // Divider before total
+    yPos += 5;
+    doc.setDrawColor(139, 92, 42);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 10;
+    
+    // Total Amount
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL AMOUNT:", 25, yPos);
+    doc.setTextColor(139, 92, 42);
+    doc.text(`₹${totalAmount}`, 165, yPos);
+    yPos += 20;
+    
+    // Footer
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Thank you for choosing MasterFit Alterations!", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    doc.text("We will contact you shortly to confirm your pickup.", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    doc.text("For queries, call: +91 XXXXX XXXXX", pageWidth / 2, yPos, { align: "center" });
+    
+    // Save PDF
+    doc.save(`MasterFit-Invoice-${orderNumber}.pdf`);
+  }, [formData, date, time, selectedServices, totalAmount]);
+
   const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -205,9 +357,19 @@ const Booking = () => {
             <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
             <p className="text-2xl font-bold text-primary">₹{totalAmount}</p>
           </div>
-          <Button variant="gold" onClick={() => navigate("/home")} className="w-full">
-            Back to Home
-          </Button>
+          <div className="space-y-3">
+            <Button
+              variant="outline"
+              onClick={generateInvoicePDF}
+              className="w-full"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download Invoice (PDF)
+            </Button>
+            <Button variant="gold" onClick={() => navigate("/home")} className="w-full">
+              Back to Home
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
