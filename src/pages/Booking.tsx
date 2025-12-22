@@ -1,48 +1,75 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useForm, ValidationError } from '@formspree/react';
-import { ArrowLeft, MapPin, Phone, CalendarDays, Clock, Link2, CheckCircle, Loader2, Plus, Minus, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useForm, ValidationError } from "@formspree/react";
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  CalendarDays,
+  Clock,
+  Link2,
+  CheckCircle,
+  Loader2,
+  Plus,
+  Minus,
+  ShoppingCart,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const timeSlots = [
-  '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-  '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
-  '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM',
-  '06:00 PM', '06:30 PM', '07:00 PM'
+  "09:00 AM",
+  "09:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "01:00 PM",
+  "01:30 PM",
+  "02:00 PM",
+  "02:30 PM",
+  "03:00 PM",
+  "03:30 PM",
+  "04:00 PM",
+  "04:30 PM",
+  "05:00 PM",
+  "05:30 PM",
+  "06:00 PM",
+  "06:30 PM",
+  "07:00 PM",
 ];
 
 const jabalpurPlaces = [
-  'Vijay Nagar',
-  'Damoh Naka',
-  'Bilehri',
-  'Napier Town',
-  'Civil Lines',
-  'Gwarighat',
-  'Adhartal',
-  'Madan Mahal',
-  'Wright Town',
-  'Garha',
-  'Tilwara',
-  'Katanga',
-  'Ranjhi',
-  'Gorakhpur',
-  'Shakti Nagar',
-  'Khamaria',
-  'Jabalpur Cantt',
-  'Gol Bazar',
-  'Sadar',
-  'Russel Chowk'
+  "Vijay Nagar",
+  "Damoh Naka",
+  "Bilehri",
+  "Napier Town",
+  "Civil Lines",
+  "Gwarighat",
+  "Adhartal",
+  "Madan Mahal",
+  "Wright Town",
+  "Garha",
+  "Tilwara",
+  "Katanga",
+  "Ranjhi",
+  "Gorakhpur",
+  "Shakti Nagar",
+  "Khamaria",
+  "Jabalpur Cantt",
+  "Gol Bazar",
+  "Sadar",
+  "Russel Chowk",
 ];
 
 interface Service {
@@ -61,36 +88,41 @@ interface SelectedService {
 const Booking = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const preSelectedService = searchParams.get('service') || '';
+  const preSelectedService = searchParams.get("service") || "";
+
   const [state, handleSubmit] = useForm("xjknnzow");
   const [date, setDate] = useState<Date>();
-  const [time, setTime] = useState<string>('');
+  const [time, setTime] = useState<string>("");
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
+
   const [formData, setFormData] = useState({
-    houseNumber: '',
-    streetArea: '',
-    place: '',
-    pincode: '',
-    phone1: '',
-    phone2: '',
-    mapLink: '',
+    houseNumber: "",
+    streetArea: "",
+    place: "",
+    pincode: "",
+    phone1: "",
+    phone2: "",
+    mapLink: "",
   });
 
-  // Fetch services from database
   useEffect(() => {
+    let cancelled = false;
+
     const fetchServices = async () => {
       const { data, error } = await supabase
-        .from('services')
-        .select('id, name, price')
-        .eq('is_active', true);
+        .from("services")
+        .select("id, name, price")
+        .eq("is_active", true);
+
+      if (cancelled) return;
 
       if (!error && data) {
         setServices(data);
-        
-        // Pre-select service if provided in URL
-        if (preSelectedService) {
-          const service = data.find(s => s.name === preSelectedService);
+
+        // Pre-select service if provided in URL (only if user hasn't selected anything yet)
+        if (preSelectedService && selectedServices.length === 0) {
+          const service = data.find((s) => s.name === preSelectedService);
           if (service) {
             setSelectedServices([{ ...service, quantity: 1 }]);
           }
@@ -99,56 +131,58 @@ const Booking = () => {
     };
 
     fetchServices();
+
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally not depending on selectedServices to avoid re-preselect loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preSelectedService]);
+
+  const totalAmount = useMemo(
+    () => selectedServices.reduce((sum, s) => sum + s.price * s.quantity, 0),
+    [selectedServices],
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const toggleService = (service: Service) => {
-    setSelectedServices(prev => {
-      const existing = prev.find(s => s.id === service.id);
-      if (existing) {
-        return prev.filter(s => s.id !== service.id);
-      }
+    setSelectedServices((prev) => {
+      const existing = prev.find((s) => s.id === service.id);
+      if (existing) return prev.filter((s) => s.id !== service.id);
       return [...prev, { ...service, quantity: 1 }];
     });
   };
 
   const updateQuantity = (serviceId: string, delta: number) => {
-    setSelectedServices(prev => 
-      prev.map(s => {
-        if (s.id === serviceId) {
-          const newQuantity = Math.max(1, s.quantity + delta);
-          return { ...s, quantity: newQuantity };
-        }
-        return s;
-      })
+    setSelectedServices((prev) =>
+      prev.map((s) => {
+        if (s.id !== serviceId) return s;
+        return { ...s, quantity: Math.max(1, s.quantity + delta) };
+      }),
     );
   };
 
-  const totalAmount = selectedServices.reduce((sum, s) => sum + (s.price * s.quantity), 0);
-
   const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     const formElement = e.currentTarget;
     const formDataToSubmit = new FormData(formElement);
-    
-    if (date) {
-      formDataToSubmit.set('pickup_date', format(date, 'PPP'));
-    }
-    if (time) {
-      formDataToSubmit.set('pickup_time', time);
-    }
-    
+
+    if (date) formDataToSubmit.set("pickup_date", format(date, "PPP"));
+    if (time) formDataToSubmit.set("pickup_time", time);
+
     // Add services info
-    const servicesText = selectedServices.map(s => `${s.name} x${s.quantity} = ₹${s.price * s.quantity}`).join(', ');
-    formDataToSubmit.set('services', servicesText);
-    formDataToSubmit.set('total_amount', `₹${totalAmount}`);
-    formDataToSubmit.set('place', formData.place);
-    
+    const servicesText = selectedServices
+      .map((s) => `${s.name} x${s.quantity} = ₹${s.price * s.quantity}`)
+      .join(", ");
+    formDataToSubmit.set("services", servicesText);
+    formDataToSubmit.set("total_amount", `₹${totalAmount}`);
+    formDataToSubmit.set("place", formData.place);
+
     await handleSubmit(formDataToSubmit);
   };
 
@@ -171,7 +205,7 @@ const Booking = () => {
             <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
             <p className="text-2xl font-bold text-primary">₹{totalAmount}</p>
           </div>
-          <Button variant="gold" onClick={() => navigate('/home')} className="w-full">
+          <Button variant="gold" onClick={() => navigate("/home")} className="w-full">
             Back to Home
           </Button>
         </motion.div>
@@ -185,11 +219,7 @@ const Booking = () => {
       <div className="bg-gradient-card border-b border-border sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/home')}
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate("/home")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h1 className="font-display text-xl font-bold">Book Pickup</h1>
@@ -205,44 +235,52 @@ const Booking = () => {
           className="bg-gradient-card border border-border rounded-2xl p-6 md:p-8"
         >
           <form onSubmit={onFormSubmit} className="space-y-6">
-            
-            {/* Service Selection Section */}
+            {/* Service Selection */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <ShoppingCart className="w-5 h-5 text-primary" />
                 <h3 className="font-display font-semibold text-lg">Select Services</h3>
               </div>
-              
+
               <p className="text-sm text-muted-foreground mb-4">
                 Choose one or more services. You can select Pant + Shirt together or any combination.
               </p>
 
               <div className="grid gap-3">
                 {services.map((service) => {
-                  const isSelected = selectedServices.some(s => s.id === service.id);
-                  const selectedItem = selectedServices.find(s => s.id === service.id);
-                  
+                  const isSelected = selectedServices.some((s) => s.id === service.id);
+                  const selectedItem = selectedServices.find((s) => s.id === service.id);
+
                   return (
-                    <div 
+                    <div
                       key={service.id}
                       className={cn(
-                        "border rounded-xl p-4 transition-all cursor-pointer",
-                        isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                        "border rounded-xl p-4 transition-all",
+                        isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
                       )}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => toggleService(service)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") toggleService(service);
+                      }}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Checkbox 
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <input
+                            type="checkbox"
                             checked={isSelected}
-                            onCheckedChange={() => toggleService(service)}
+                            onChange={() => toggleService(service)}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Select ${service.name}`}
+                            className="h-4 w-4 rounded border border-primary/40 bg-background accent-[hsl(var(--primary))]"
                           />
-                          <div>
-                            <p className="font-semibold">{service.name}</p>
+                          <div className="min-w-0">
+                            <p className="font-semibold truncate">{service.name}</p>
                             <p className="text-sm text-primary font-medium">₹{service.price} per item</p>
                           </div>
                         </div>
-                        
+
                         {isSelected && (
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <Button
@@ -272,7 +310,6 @@ const Booking = () => {
                 })}
               </div>
 
-              {/* Total Amount Display */}
               {selectedServices.length > 0 && (
                 <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
                   <div className="flex justify-between items-center mb-2">
@@ -287,7 +324,7 @@ const Booking = () => {
               )}
             </div>
 
-            {/* Address Section */}
+            {/* Address */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-primary" />
@@ -325,23 +362,24 @@ const Booking = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Place (Jabalpur Area) *</Label>
-                    <Select 
-                      value={formData.place} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, place: value }))}
+                    <Label htmlFor="place">Place (Jabalpur Area) *</Label>
+                    <select
+                      id="place"
+                      name="place"
+                      value={formData.place}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, place: e.target.value }))}
                       required
+                      className="mt-1.5 w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select area" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {jabalpurPlaces.map((place) => (
-                          <SelectItem key={place} value={place}>
-                            {place}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <option value="" disabled>
+                        Select area
+                      </option>
+                      {jabalpurPlaces.map((place) => (
+                        <option key={place} value={place}>
+                          {place}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -363,7 +401,7 @@ const Booking = () => {
               </div>
             </div>
 
-            {/* Phone Numbers Section */}
+            {/* Phones */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Phone className="w-5 h-5 text-primary" />
@@ -402,7 +440,7 @@ const Booking = () => {
               </div>
             </div>
 
-            {/* Date & Time Section */}
+            {/* Date & Time */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <CalendarDays className="w-5 h-5 text-primary" />
@@ -418,7 +456,7 @@ const Booking = () => {
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal mt-1.5",
-                          !date && "text-muted-foreground"
+                          !date && "text-muted-foreground",
                         )}
                       >
                         <CalendarDays className="mr-2 h-4 w-4" />
@@ -430,9 +468,7 @@ const Booking = () => {
                         mode="single"
                         selected={date}
                         onSelect={setDate}
-                        disabled={(date) =>
-                          date < new Date() || date < new Date("1900-01-01")
-                        }
+                        disabled={(d) => d < new Date() || d < new Date("1900-01-01")}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
                       />
@@ -441,24 +477,32 @@ const Booking = () => {
                 </div>
 
                 <div>
-                  <Label>Select Time *</Label>
-                  <Select value={time} onValueChange={setTime} required>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Select time slot" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {timeSlots.map((slot) => (
-                        <SelectItem key={slot} value={slot}>
-                          {slot}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="time">Select Time *</Label>
+                  <select
+                    id="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    required
+                    className="mt-1.5 w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="" disabled>
+                      Select time slot
+                    </option>
+                    {timeSlots.map((slot) => (
+                      <option key={slot} value={slot}>
+                        {slot}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    Choose a convenient pickup time
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Map Link Section (Optional) */}
+            {/* Map Link */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Link2 className="w-5 h-5 text-primary" />
@@ -476,18 +520,18 @@ const Booking = () => {
                   onChange={handleInputChange}
                   className="mt-1.5"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Share your exact location for faster pickup
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">Share your exact location for faster pickup</p>
               </div>
             </div>
 
-            {/* Final Total & Submit */}
+            {/* Final Total */}
             {selectedServices.length > 0 && (
               <div className="bg-card border border-primary rounded-xl p-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Services:</span>
-                  <span className="text-sm">{selectedServices.map(s => `${s.name} x${s.quantity}`).join(', ')}</span>
+                  <span className="text-sm">
+                    {selectedServices.map((s) => `${s.name} x${s.quantity}`).join(", ")}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border">
                   <span className="font-bold text-lg">Total Payable:</span>
@@ -496,7 +540,6 @@ const Booking = () => {
               </div>
             )}
 
-            {/* Submit Button */}
             <Button
               type="submit"
               variant="gold"
