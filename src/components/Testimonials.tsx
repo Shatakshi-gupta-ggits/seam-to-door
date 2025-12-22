@@ -7,33 +7,33 @@ const testimonials = [
   {
     id: 1,
     name: "Priya Sharma",
-    location: "Mumbai",
+    location: "Vijay Nagar, Jabalpur",
     rating: 5,
-    text: "Absolutely brilliant service! Got my wedding lehenga altered perfectly. The pickup and delivery made it so convenient.",
+    text: "Excellent alteration work! Got my blouse fitted perfectly for a wedding. The pickup from my doorstep was so convenient. Highly recommend!",
     avatar: "PS",
   },
   {
     id: 2,
     name: "Rahul Mehta",
-    location: "Bangalore",
+    location: "Napier Town, Jabalpur",
     rating: 5,
-    text: "Best tailoring service I've used. Quick turnaround, excellent fit, and very professional staff.",
+    text: "Very professional service. My blazer fits perfectly now. They picked up from home and delivered within 2 days. Great quality work.",
     avatar: "RM",
   },
   {
     id: 3,
     name: "Ananya Patel",
-    location: "Delhi",
+    location: "Civil Lines, Jabalpur",
     rating: 5,
-    text: "The quality of work is exceptional. My blazer fits like it was made for me. Highly recommend!",
+    text: "Got both pant and shirt altered together. The total cost was shown clearly before booking. Perfect fitting and on-time delivery!",
     avatar: "AP",
   },
   {
     id: 4,
     name: "Vikram Singh",
-    location: "Pune",
+    location: "Adhartal, Jabalpur",
     rating: 5,
-    text: "Saved so much time with their door-to-door service. Perfect alterations every time.",
+    text: "Saved so much time with their door-to-door service. My kurti alterations came out perfect. Will definitely use again.",
     avatar: "VS",
   },
 ];
@@ -66,14 +66,14 @@ export const Testimonials = () => {
           className="text-center mb-16"
         >
           <span className="text-primary font-medium text-sm tracking-wider uppercase mb-4 block">
-            Testimonials
+            Customer Reviews
           </span>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Loved by{" "}
-            <span className="text-gradient-gold">1000+ Customers</span>
+            What Our{" "}
+            <span className="text-gradient-gold">Customers Say</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Don't just take our word for it — hear from our happy customers
+            Real feedback from satisfied customers in Jabalpur
           </p>
         </motion.div>
 

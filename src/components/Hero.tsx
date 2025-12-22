@@ -1,6 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, Sparkles, Clock, ChevronRight } from "lucide-react";
+import { Shield, Sparkles, Clock, ChevronRight, Phone, MessageCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroTailor from "@/assets/hero-tailor.jpg";
@@ -14,11 +14,11 @@ const trustBadges = [
 const serviceOptions = [
   { label: "Select Garment Type", value: "" },
   { label: "Pant Alteration", value: "Pant Alteration" },
-  { label: "Shirt Tailoring", value: "Shirt Tailoring" },
-  { label: "Kurti Fitting", value: "Kurti Fitting" },
-  { label: "Blazer Adjustment", value: "Blazer Adjustment" },
+  { label: "Shirt Alteration", value: "Shirt Alteration" },
+  { label: "Kurti Alteration", value: "Kurti Alteration" },
+  { label: "Blazer Alteration", value: "Blazer Alteration" },
   { label: "Dress Alteration", value: "Dress Alteration" },
-  { label: "Ethnic Jacket", value: "Ethnic Jacket" },
+  { label: "Ethnic Jacket Alteration", value: "Ethnic Jacket Alteration" },
 ];
 
 export const Hero = () => {
@@ -44,6 +44,14 @@ export const Hero = () => {
 
   const handleBookPickup = () => {
     navigate('/booking');
+  };
+
+  const handleCall = () => {
+    window.location.href = 'tel:+919407826370';
+  };
+
+  const handleWhatsApp = () => {
+    window.open('https://wa.me/919407826370?text=Hi, I need alteration services in Jabalpur', '_blank');
   };
 
   return (
@@ -118,7 +126,7 @@ export const Hero = () => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">Premium Door-to-Door Service</span>
+              <span className="text-sm text-primary font-medium">Jabalpur's Trusted Alteration Service</span>
             </motion.div>
 
             <motion.h1 
@@ -152,15 +160,19 @@ export const Hero = () => {
               </motion.span>
             </motion.h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-              Door-to-door alterations: pant hems, shirt tailoring, bridal & ethnic fittings — scheduled at your convenience.
+            <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-xl mx-auto lg:mx-0">
+              Door-to-door pickup & delivery in Jabalpur. Pant hems, shirt fitting, kurti, blazer & ethnic wear alterations by expert tailors.
+            </p>
+
+            <p className="text-sm text-primary font-medium mb-8 max-w-xl mx-auto lg:mx-0">
+              📍 Serving all areas in Jabalpur • ⏱️ 24-48 hours delivery • 🚗 Free pickup & delivery
             </p>
 
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10"
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6"
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -177,6 +189,33 @@ export const Hero = () => {
                   <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </motion.div>
+            </motion.div>
+
+            {/* Call & WhatsApp Buttons */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.4 }}
+              className="flex flex-wrap gap-3 justify-center lg:justify-start mb-10"
+            >
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleCall}
+                className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+              >
+                <Phone className="w-5 h-5 mr-2" />
+                Call Now
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleWhatsApp}
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                WhatsApp
+              </Button>
             </motion.div>
 
             {/* Trust Badges */}
@@ -223,7 +262,7 @@ export const Hero = () => {
                   {/* Widget Header */}
                   <div className="text-center">
                     <h3 className="font-display text-xl font-semibold mb-1">Quick Book</h3>
-                    <p className="text-sm text-muted-foreground">Schedule your pickup in seconds</p>
+                    <p className="text-sm text-muted-foreground">Select your garment & book pickup</p>
                   </div>
 
                   {/* Form Fields */}
@@ -261,7 +300,7 @@ export const Hero = () => {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-xs text-foreground">5 tailors nearby</span>
+                  <span className="text-xs text-foreground">Serving Jabalpur</span>
                 </div>
               </motion.div>
 
@@ -271,8 +310,8 @@ export const Hero = () => {
                 className="absolute -bottom-4 -left-4 bg-card rounded-xl p-3 gold-border shadow-card"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary animate-pulse-gold" />
-                  <span className="text-xs text-foreground">1000+ happy customers</span>
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="text-xs text-foreground">24-48 hrs delivery</span>
                 </div>
               </motion.div>
             </div>

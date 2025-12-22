@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -37,6 +37,34 @@ const imageMap: Record<string, string> = {
   'Kurti Alteration': serviceKurti,
   'Blazer Alteration': serviceBlazer,
   'Ethnic Jacket Alteration': serviceEthnic,
+};
+
+// Service details with work description and time
+const serviceDetails: Record<string, { work: string; time: string }> = {
+  'Pant Alteration': { 
+    work: 'Hemming, waist adjustment, tapering, length alteration', 
+    time: '24-48 hours' 
+  },
+  'Shirt Alteration': { 
+    work: 'Sleeve adjustment, collar fitting, body tapering', 
+    time: '24-48 hours' 
+  },
+  'Dress Alteration': { 
+    work: 'Hemming, waist fitting, zipper repair, length adjustment', 
+    time: '48-72 hours' 
+  },
+  'Kurti Alteration': { 
+    work: 'Length adjustment, sleeve modification, side fitting', 
+    time: '24-48 hours' 
+  },
+  'Blazer Alteration': { 
+    work: 'Shoulder adjustment, sleeve length, body fitting', 
+    time: '48-72 hours' 
+  },
+  'Ethnic Jacket Alteration': { 
+    work: 'Traditional fitting, embellishment work, length adjustment', 
+    time: '48-72 hours' 
+  },
 };
 
 interface Service {
@@ -113,9 +141,20 @@ export const Services = () => {
             Expert Alterations for{" "}
             <span className="text-gradient-gold">Every Garment</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            From everyday wear to special occasions, our verified tailors handle it all with precision and care.
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-4">
+            Professional alteration services in Jabalpur with free pickup & delivery. 
+            Choose multiple services and get your clothes perfectly fitted.
           </p>
+          <div className="flex flex-wrap justify-center gap-4 text-sm">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Truck className="w-4 h-4 text-primary" />
+              Free Pickup & Delivery
+            </span>
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="w-4 h-4 text-primary" />
+              24-72 Hours Delivery
+            </span>
+          </div>
         </motion.div>
 
         {/* Services Grid */}
@@ -128,6 +167,7 @@ export const Services = () => {
           {services.map((service) => {
             const icon = iconMap[service.name] || pantIcon;
             const image = imageMap[service.name] || servicePants;
+            const details = serviceDetails[service.name] || { work: 'Professional alteration work', time: '24-48 hours' };
             const isHovered = hoveredService === service.id;
 
             return (
@@ -147,16 +187,16 @@ export const Services = () => {
                   transformStyle: "preserve-3d"
                 }}
               >
-                {/* Background Image */}
+                {/* Background Image - increased opacity */}
                 <div className="absolute inset-0 overflow-hidden">
                   <motion.img
                     src={image}
                     alt={service.name}
-                    className="w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+                    className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-500"
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.5 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/70 to-card/50" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/80 to-card/60" />
                 </div>
 
                 {/* Content */}
@@ -187,9 +227,23 @@ export const Services = () => {
                   <h3 className="font-display text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                     {service.name}
                   </h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {service.description}
+                  
+                  {/* Work Description */}
+                  <p className="text-muted-foreground text-sm mb-3">
+                    <span className="font-medium text-foreground">Work:</span> {details.work}
                   </p>
+                  
+                  {/* Time & Delivery */}
+                  <div className="flex items-center gap-4 mb-4 text-sm">
+                    <span className="flex items-center gap-1 text-primary">
+                      <Clock className="w-4 h-4" />
+                      {details.time}
+                    </span>
+                    <span className="flex items-center gap-1 text-green-500">
+                      <Truck className="w-4 h-4" />
+                      Free Pickup
+                    </span>
+                  </div>
 
                   {/* Price & CTA */}
                   <div className="flex items-center justify-between">
@@ -201,7 +255,7 @@ export const Services = () => {
                     </div>
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : 20 }}
+                      animate={{ opacity: isHovered ? 1 : 0.7, x: 0 }}
                       transition={{ duration: 0.2 }}
                     >
                       <Button

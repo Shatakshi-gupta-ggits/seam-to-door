@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm, ValidationError } from '@formspree/react';
-import { ArrowLeft, MapPin, Phone, Calendar, Clock, Link2, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Calendar, Clock, Link2, CheckCircle, Loader2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const timeSlots = [
   '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
@@ -20,33 +22,117 @@ const timeSlots = [
   '06:00 PM', '06:30 PM', '07:00 PM'
 ];
 
+const jabalpurPlaces = [
+  'Vijay Nagar',
+  'Damoh Naka',
+  'Bilehri',
+  'Napier Town',
+  'Civil Lines',
+  'Gwarighat',
+  'Adhartal',
+  'Madan Mahal',
+  'Wright Town',
+  'Garha',
+  'Tilwara',
+  'Katanga',
+  'Ranjhi',
+  'Gorakhpur',
+  'Shakti Nagar',
+  'Khamaria',
+  'Jabalpur Cantt',
+  'Gol Bazar',
+  'Sadar',
+  'Russel Chowk'
+];
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+}
+
+interface SelectedService {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 const Booking = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const serviceName = searchParams.get('service') || '';
+  const preSelectedService = searchParams.get('service') || '';
   const [state, handleSubmit] = useForm("xjknnzow");
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>('');
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [formData, setFormData] = useState({
     houseNumber: '',
     streetArea: '',
-    district: '',
+    place: '',
     pincode: '',
     phone1: '',
     phone2: '',
     mapLink: '',
-    service: serviceName,
   });
+
+  // Fetch services from database
+  useEffect(() => {
+    const fetchServices = async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, name, price')
+        .eq('is_active', true);
+
+      if (!error && data) {
+        setServices(data);
+        
+        // Pre-select service if provided in URL
+        if (preSelectedService) {
+          const service = data.find(s => s.name === preSelectedService);
+          if (service) {
+            setSelectedServices([{ ...service, quantity: 1 }]);
+          }
+        }
+      }
+    };
+
+    fetchServices();
+  }, [preSelectedService]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toggleService = (service: Service) => {
+    setSelectedServices(prev => {
+      const existing = prev.find(s => s.id === service.id);
+      if (existing) {
+        return prev.filter(s => s.id !== service.id);
+      }
+      return [...prev, { ...service, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (serviceId: string, delta: number) => {
+    setSelectedServices(prev => 
+      prev.map(s => {
+        if (s.id === serviceId) {
+          const newQuantity = Math.max(1, s.quantity + delta);
+          return { ...s, quantity: newQuantity };
+        }
+        return s;
+      })
+    );
+  };
+
+  const totalAmount = selectedServices.reduce((sum, s) => sum + (s.price * s.quantity), 0);
+
   const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Create hidden inputs for date and time
     const formElement = e.currentTarget;
     const formDataToSubmit = new FormData(formElement);
     
@@ -56,9 +142,13 @@ const Booking = () => {
     if (time) {
       formDataToSubmit.set('pickup_time', time);
     }
-    formDataToSubmit.set('service', formData.service);
     
-    // Submit via Formspree
+    // Add services info
+    const servicesText = selectedServices.map(s => `${s.name} x${s.quantity} = ₹${s.price * s.quantity}`).join(', ');
+    formDataToSubmit.set('services', servicesText);
+    formDataToSubmit.set('total_amount', `₹${totalAmount}`);
+    formDataToSubmit.set('place', formData.place);
+    
     await handleSubmit(formDataToSubmit);
   };
 
@@ -74,9 +164,13 @@ const Booking = () => {
             <CheckCircle className="w-8 h-8 text-primary" />
           </div>
           <h2 className="font-display text-2xl font-bold mb-2">Booking Confirmed!</h2>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted-foreground mb-4">
             Thank you for your booking. We'll contact you shortly to confirm your pickup.
           </p>
+          <div className="bg-primary/10 rounded-lg p-4 mb-6">
+            <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
+            <p className="text-2xl font-bold text-primary">₹{totalAmount}</p>
+          </div>
           <Button variant="gold" onClick={() => navigate('/home')} className="w-full">
             Back to Home
           </Button>
@@ -110,16 +204,88 @@ const Booking = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-card border border-border rounded-2xl p-6 md:p-8"
         >
-          {serviceName && (
-            <div className="mb-6 p-4 bg-primary/10 rounded-xl border border-primary/20">
-              <p className="text-sm text-muted-foreground">Service Selected</p>
-              <p className="font-semibold text-primary">{serviceName}</p>
-            </div>
-          )}
-
           <form onSubmit={onFormSubmit} className="space-y-6">
-            {/* Hidden service field */}
-            <input type="hidden" name="service" value={formData.service} />
+            
+            {/* Service Selection Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <ShoppingCart className="w-5 h-5 text-primary" />
+                <h3 className="font-display font-semibold text-lg">Select Services</h3>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-4">
+                Choose one or more services. You can select Pant + Shirt together or any combination.
+              </p>
+
+              <div className="grid gap-3">
+                {services.map((service) => {
+                  const isSelected = selectedServices.some(s => s.id === service.id);
+                  const selectedItem = selectedServices.find(s => s.id === service.id);
+                  
+                  return (
+                    <div 
+                      key={service.id}
+                      className={cn(
+                        "border rounded-xl p-4 transition-all cursor-pointer",
+                        isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                      )}
+                      onClick={() => toggleService(service)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            checked={isSelected}
+                            onCheckedChange={() => toggleService(service)}
+                          />
+                          <div>
+                            <p className="font-semibold">{service.name}</p>
+                            <p className="text-sm text-primary font-medium">₹{service.price} per item</p>
+                          </div>
+                        </div>
+                        
+                        {isSelected && (
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => updateQuantity(service.id, -1)}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            <span className="w-8 text-center font-semibold">{selectedItem?.quantity || 1}</span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => updateQuantity(service.id, 1)}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Total Amount Display */}
+              {selectedServices.length > 0 && (
+                <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Selected Items:</span>
+                    <span className="text-sm">{selectedServices.reduce((sum, s) => sum + s.quantity, 0)} items</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total Amount:</span>
+                    <span className="text-2xl font-bold text-primary">₹{totalAmount}</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Address Section */}
             <div className="space-y-4">
@@ -148,7 +314,7 @@ const Booking = () => {
                   <Textarea
                     id="streetArea"
                     name="streetArea"
-                    placeholder="e.g., MG Road, Sector 15, Green Park Colony"
+                    placeholder="e.g., Near XYZ Hospital, ABC Colony"
                     value={formData.streetArea}
                     onChange={handleInputChange}
                     required
@@ -159,17 +325,23 @@ const Booking = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="district">District *</Label>
-                    <Input
-                      id="district"
-                      name="district"
-                      placeholder="e.g., Central Delhi"
-                      value={formData.district}
-                      onChange={handleInputChange}
+                    <Label>Place (Jabalpur Area) *</Label>
+                    <Select 
+                      value={formData.place} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, place: value }))}
                       required
-                      className="mt-1.5"
-                    />
-                    <ValidationError prefix="District" field="district" errors={state.errors} />
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue placeholder="Select area" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {jabalpurPlaces.map((place) => (
+                          <SelectItem key={place} value={place}>
+                            {place}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
@@ -177,7 +349,7 @@ const Booking = () => {
                     <Input
                       id="pincode"
                       name="pincode"
-                      placeholder="e.g., 110001"
+                      placeholder="e.g., 482001"
                       value={formData.pincode}
                       onChange={handleInputChange}
                       required
@@ -215,7 +387,7 @@ const Booking = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone2">Alternate Phone *</Label>
+                  <Label htmlFor="phone2">Alternate Phone (Optional)</Label>
                   <Input
                     id="phone2"
                     name="phone2"
@@ -223,7 +395,6 @@ const Booking = () => {
                     placeholder="+91 98765 43210"
                     value={formData.phone2}
                     onChange={handleInputChange}
-                    required
                     className="mt-1.5"
                   />
                   <ValidationError prefix="Alternate Phone" field="phone2" errors={state.errors} />
@@ -320,13 +491,27 @@ const Booking = () => {
               </div>
             </div>
 
+            {/* Final Total & Submit */}
+            {selectedServices.length > 0 && (
+              <div className="bg-card border border-primary rounded-xl p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-muted-foreground">Services:</span>
+                  <span className="text-sm">{selectedServices.map(s => `${s.name} x${s.quantity}`).join(', ')}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-border">
+                  <span className="font-bold text-lg">Total Payable:</span>
+                  <span className="text-3xl font-bold text-primary">₹{totalAmount}</span>
+                </div>
+              </div>
+            )}
+
             {/* Submit Button */}
             <Button
               type="submit"
               variant="gold"
               size="lg"
               className="w-full"
-              disabled={state.submitting || !date || !time}
+              disabled={state.submitting || !date || !time || selectedServices.length === 0 || !formData.place}
             >
               {state.submitting ? (
                 <>
@@ -334,7 +519,7 @@ const Booking = () => {
                   Submitting...
                 </>
               ) : (
-                'Confirm Pickup'
+                <>Confirm Pickup - ₹{totalAmount}</>
               )}
             </Button>
           </form>
