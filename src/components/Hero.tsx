@@ -267,17 +267,24 @@ export const Hero = () => {
 
                   {/* Form Fields */}
                   <div className="space-y-4">
-                    <select 
-                      value={selectedService}
-                      onChange={(e) => setSelectedService(e.target.value)}
-                      className="w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
-                    >
-                      {serviceOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div>
+                      <label htmlFor="garmentType" className="block text-sm font-medium text-foreground mb-1.5">
+                        Select Garment *
+                      </label>
+                      <select 
+                        id="garmentType"
+                        value={selectedService}
+                        onChange={(e) => setSelectedService(e.target.value)}
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      >
+                        <option value="" disabled>Select garment type</option>
+                        {serviceOptions.slice(1).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                     <Button variant="gold" className="w-full" size="lg" onClick={handleQuickBook}>
                       Book Pickup Now
