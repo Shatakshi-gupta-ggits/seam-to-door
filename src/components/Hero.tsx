@@ -268,16 +268,18 @@ export const Hero = () => {
                   {/* Form Fields */}
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="garmentType" className="block text-sm font-medium text-foreground mb-1.5">
+                      <label htmlFor="garmentType" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         Select Garment *
                       </label>
                       <select 
                         id="garmentType"
                         value={selectedService}
                         onChange={(e) => setSelectedService(e.target.value)}
-                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        className="mt-1.5 w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       >
-                        <option value="" disabled>Select garment type</option>
+                        <option value="" disabled>
+                          Select garment type
+                        </option>
                         {serviceOptions.slice(1).map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
