@@ -123,11 +123,30 @@ const Booking = () => {
       if (!error && data) {
         setServices(data);
 
-        // Pre-select service if provided in URL (only if user hasn't selected anything yet)
-        if (preSelectedService && selectedServices.length === 0) {
-          const service = data.find((s) => s.name === preSelectedService);
-          if (service) {
-            setSelectedServices([{ ...service, quantity: 1 }]);
+        // Pre-select services if provided in URL (only if user hasn't selected anything yet)
+        if (selectedServices.length === 0) {
+          const servicesToPreselect: SelectedService[] = [];
+
+          // Handle multiple services from Hero component (services parameter)
+          if (preSelectedServices) {
+            const serviceNames = preSelectedServices.split(',').map(name => name.trim());
+            serviceNames.forEach(serviceName => {
+              const service = data.find((s) => s.name === serviceName);
+              if (service) {
+                servicesToPreselect.push({ ...service, quantity: 1 });
+              }
+            });
+          }
+          // Handle single service (service parameter) - for backward compatibility
+          else if (preSelectedService) {
+            const service = data.find((s) => s.name === preSelectedService);
+            if (service) {
+              servicesToPreselect.push({ ...service, quantity: 1 });
+            }
+          }
+
+          if (servicesToPreselect.length > 0) {
+            setSelectedServices(servicesToPreselect);
           }
         }
       }
@@ -140,7 +159,7 @@ const Booking = () => {
     };
     // Intentionally not depending on selectedServices to avoid re-preselect loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preSelectedService]);
+  }, [preSelectedService, preSelectedServices]);
 
   const totalAmount = useMemo(
     () => selectedServices.reduce((sum, s) => sum + s.price * s.quantity, 0),
