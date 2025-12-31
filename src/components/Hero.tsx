@@ -12,7 +12,6 @@ const trustBadges = [
 ];
 
 const serviceOptions = [
-  { label: "Select Garment Type", value: "" },
   { label: "Pant Alteration", value: "Pant Alteration" },
   { label: "Shirt Alteration", value: "Shirt Alteration" },
   { label: "Kurti Alteration", value: "Kurti Alteration" },
@@ -24,26 +23,38 @@ const serviceOptions = [
 export const Hero = () => {
   const ref = useRef(null);
   const navigate = useNavigate();
-  const [selectedService, setSelectedService] = useState("");
-  
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"]
   });
-  
+
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   const handleQuickBook = () => {
-    if (selectedService) {
-      navigate(`/booking?service=${encodeURIComponent(selectedService)}`);
+    if (selectedServices.length > 0) {
+      navigate(`/booking?services=${encodeURIComponent(selectedServices.join(','))}`);
     } else {
       navigate('/booking');
     }
   };
 
+  const handleServiceToggle = (service: string) => {
+    setSelectedServices(prev =>
+      prev.includes(service)
+        ? prev.filter(s => s !== service)
+        : [...prev, service]
+    );
+  };
+
   const handleBookPickup = () => {
-    navigate('/booking');
+    if (selectedServices.length > 0) {
+      navigate(`/booking?services=${encodeURIComponent(selectedServices.join(','))}`);
+    } else {
+      navigate('/booking');
+    }
   };
 
   const handleCall = () => {
@@ -61,31 +72,31 @@ export const Hero = () => {
         style={{ y, opacity }}
         className="absolute inset-0 overflow-hidden"
       >
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             scale: [1, 1.2, 1],
             rotate: [0, 180, 360]
           }}
-          transition={{ 
-            duration: 20, 
-            repeat: Infinity, 
-            ease: "linear" 
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
           }}
-          className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl" 
+          className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl"
         />
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             scale: [1.2, 1, 1.2],
             rotate: [360, 180, 0]
           }}
-          transition={{ 
-            duration: 25, 
-            repeat: Infinity, 
-            ease: "linear" 
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear"
           }}
-          className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" 
+          className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
         />
-        
+
         {/* Floating particles */}
         {[...Array(6)].map((_, i) => (
           <motion.div
@@ -129,7 +140,7 @@ export const Hero = () => {
               <span className="text-sm text-primary font-medium">Jabalpur's Trusted Alteration Service</span>
             </motion.div>
 
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.5 }}
@@ -142,7 +153,7 @@ export const Hero = () => {
               >
                 Perfect fit,{" "}
               </motion.span>
-              <motion.span 
+              <motion.span
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
@@ -168,7 +179,7 @@ export const Hero = () => {
               📍 Serving all areas in Jabalpur • ⏱️ 24-48 hours delivery • 🚗 Free pickup & delivery
             </p>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
@@ -192,24 +203,24 @@ export const Hero = () => {
             </motion.div>
 
             {/* Call & WhatsApp Buttons */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.4 }}
               className="flex flex-wrap gap-3 justify-center lg:justify-start mb-10"
             >
-              <Button 
-                variant="outline" 
-                size="lg" 
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={handleCall}
                 className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
               >
                 <Phone className="w-5 h-5 mr-2" />
                 Call Now
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={handleWhatsApp}
                 className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
               >
@@ -262,22 +273,37 @@ export const Hero = () => {
                   {/* Widget Header */}
                   <div className="text-center">
                     <h3 className="font-display text-xl font-semibold mb-1">Quick Book</h3>
-                    <p className="text-sm text-muted-foreground">Select your garment & book pickup</p>
+                    <p className="text-sm text-muted-foreground">Select garments & book pickup</p>
                   </div>
 
                   {/* Form Fields */}
                   <div className="space-y-4">
-                    <select 
-                      value={selectedService}
-                      onChange={(e) => setSelectedService(e.target.value)}
-                      className="w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
-                    >
-                      {serviceOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-foreground">Select Services:</p>
+                      <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                        {serviceOptions.map((option) => (
+                          <label
+                            key={option.value}
+                            className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/50 cursor-pointer transition-colors group"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedServices.includes(option.value)}
+                              onChange={() => handleServiceToggle(option.value)}
+                              className="w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary focus:ring-2"
+                            />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                              {option.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {selectedServices.length > 0 && (
+                        <div className="text-xs text-primary">
+                          {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} selected
+                        </div>
+                      )}
+                    </div>
 
                     <Button variant="gold" className="w-full" size="lg" onClick={handleQuickBook}>
                       Book Pickup Now
