@@ -91,6 +91,7 @@ const Booking = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preSelectedService = searchParams.get("service") || "";
+  const preSelectedServices = searchParams.get("services") || "";
 
   const [state, handleSubmit] = useForm("xjknnzow");
   const [date, setDate] = useState<Date>();
