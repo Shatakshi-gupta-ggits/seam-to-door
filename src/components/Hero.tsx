@@ -11,19 +11,35 @@ const trustBadges = [
   { icon: Clock, label: "48hr Delivery" },
 ];
 
-const serviceOptions = [
-  { label: "Pant Alteration", value: "Pant Alteration" },
-  { label: "Shirt Alteration", value: "Shirt Alteration" },
-  { label: "Kurti Alteration", value: "Kurti Alteration" },
-  { label: "Blazer Alteration", value: "Blazer Alteration" },
-  { label: "Dress Alteration", value: "Dress Alteration" },
-  { label: "Ethnic Jacket Alteration", value: "Ethnic Jacket Alteration" },
+const maleServiceOptions = [
+  { label: "Pant (Formal/Casual)", value: "Pant (Formal/Casual)" },
+  { label: "Jeans", value: "Jeans" },
+  { label: "Shirt (Formal/Casual)", value: "Shirt (Formal/Casual)" },
+  { label: "Kurta", value: "Kurta" },
+  { label: "Kurta Pajama", value: "Kurta Pajama" },
+  { label: "Sherwani", value: "Sherwani" },
+  { label: "Blazer", value: "Blazer" },
+  { label: "Nehru Jacket", value: "Nehru Jacket" },
+];
+
+const femaleServiceOptions = [
+  { label: "Kurti", value: "Kurti" },
+  { label: "Salwar", value: "Salwar" },
+  { label: "Palazzo", value: "Palazzo" },
+  { label: "Suit/Suit Set", value: "Suit" },
+  { label: "Dress", value: "Dress" },
+  { label: "Gown", value: "Gown (Ethnic)" },
+  { label: "Jumpsuit", value: "Jumpsuit" },
+  { label: "Jacket", value: "Jacket" },
 ];
 
 export const Hero = () => {
   const ref = useRef(null);
   const navigate = useNavigate();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('male');
+  
+  const serviceOptions = selectedGender === 'male' ? maleServiceOptions : femaleServiceOptions;
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -279,6 +295,29 @@ export const Hero = () => {
                   {/* Form Fields */}
                   <div className="space-y-4">
                     <div className="space-y-3">
+                      {/* Gender Toggle */}
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          onClick={() => { setSelectedGender('male'); setSelectedServices([]); }}
+                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                            selectedGender === 'male' 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          👔 Male
+                        </button>
+                        <button
+                          onClick={() => { setSelectedGender('female'); setSelectedServices([]); }}
+                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                            selectedGender === 'female' 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          👗 Female
+                        </button>
+                      </div>
                       <p className="text-sm font-medium text-foreground">Select Services:</p>
                       <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
                         {serviceOptions.map((option) => (
