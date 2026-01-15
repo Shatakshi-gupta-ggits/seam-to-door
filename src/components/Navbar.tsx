@@ -31,22 +31,25 @@ export const Navbar = () => {
   };
 
   const scrollToSection = (sectionId: string) => {
-    // If we're not on home page, navigate there first
-    if (location.pathname !== '/home') {
+    // Check if we're on the home page
+    const isOnHomePage = location.pathname === '/home' || location.pathname === '/';
+    
+    // First try to find the element on current page
+    const element = document.getElementById(sectionId);
+    
+    if (element && isOnHomePage) {
+      // Already on home page and element exists, just scroll
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Navigate to home page first, then scroll
       navigate('/home');
       // Wait for navigation to complete, then scroll
       setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const targetElement = document.getElementById(sectionId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 100);
-    } else {
-      // Already on home page, just scroll
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      }, 150);
     }
     setIsOpen(false);
   };
