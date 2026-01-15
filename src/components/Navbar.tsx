@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Scissors, User, LogOut, CalendarCheck, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,20 +13,42 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
-  { label: "Services", href: "#services" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Reviews", href: "#reviews" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Services", href: "services" },
+  { label: "How It Works", href: "how-it-works" },
+  { label: "Reviews", href: "reviews" },
+  { label: "FAQ", href: "faq" },
 ];
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    // If we're not on home page, navigate there first
+    if (location.pathname !== '/home') {
+      navigate('/home');
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else {
+      // Already on home page, just scroll
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    setIsOpen(false);
   };
 
   return (
@@ -52,14 +74,14 @@ export const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
+              <button
                 key={link.label}
-                href={link.href}
+                onClick={() => scrollToSection(link.href)}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300 relative group"
               >
                 {link.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
-              </a>
+              </button>
             ))}
           </div>
 
@@ -124,17 +146,16 @@ export const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-6 space-y-4">
               {navLinks.map((link, index) => (
-                <motion.a
+                <motion.button
                   key={link.label}
-                  href={link.href}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  onClick={() => setIsOpen(false)}
-                  className="block text-lg text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => scrollToSection(link.href)}
+                  className="block w-full text-left text-lg text-foreground hover:text-primary transition-colors py-2"
                 >
                   {link.label}
-                </motion.a>
+                </motion.button>
               ))}
               
               {user ? (
@@ -144,28 +165,32 @@ export const Navbar = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <a
-                      href="/profile"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2 text-lg text-foreground hover:text-primary py-2"
+                    <button
+                      onClick={() => {
+                        navigate('/profile');
+                        setIsOpen(false);
+                      }}
+                      className="flex items-center gap-2 text-lg text-foreground hover:text-primary py-2 w-full"
                     >
                       <User className="w-5 h-5" />
                       My Profile
-                    </a>
+                    </button>
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
                   >
-                    <a
-                      href="/bookings"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2 text-lg text-foreground hover:text-primary py-2"
+                    <button
+                      onClick={() => {
+                        navigate('/bookings');
+                        setIsOpen(false);
+                      }}
+                      className="flex items-center gap-2 text-lg text-foreground hover:text-primary py-2 w-full"
                     >
                       <CalendarCheck className="w-5 h-5" />
                       My Bookings
-                    </a>
+                    </button>
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
