@@ -31,27 +31,32 @@ export const Navbar = () => {
   };
 
   const scrollToSection = (sectionId: string) => {
+    // Close mobile menu first
+    setIsOpen(false);
+    
     // Check if we're on the home page
     const isOnHomePage = location.pathname === '/home' || location.pathname === '/';
     
-    // First try to find the element on current page
-    const element = document.getElementById(sectionId);
-    
-    if (element && isOnHomePage) {
-      // Already on home page and element exists, just scroll
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      // Navigate to home page first, then scroll
-      navigate('/home');
-      // Wait for navigation to complete, then scroll
-      setTimeout(() => {
-        const targetElement = document.getElementById(sectionId);
-        if (targetElement) {
-          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Use a timeout to allow menu close animation to complete
+    setTimeout(() => {
+      if (isOnHomePage) {
+        // Already on home page, scroll to element
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 150);
-    }
-    setIsOpen(false);
+      } else {
+        // Navigate to home page first, then scroll
+        navigate('/home');
+        // Wait for navigation to complete, then scroll
+        setTimeout(() => {
+          const targetElement = document.getElementById(sectionId);
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 200);
+      }
+    }, 350); // Wait for menu animation to complete
   };
 
   return (
