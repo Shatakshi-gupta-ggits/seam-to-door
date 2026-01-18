@@ -101,23 +101,23 @@ export const Gallery = () => {
   // Show loading state until visible
   if (!isVisible) {
     return (
-      <section id="gallery-section" className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      <section id="gallery-section" className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
               Our Work Gallery
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Loading our gallery of perfectly fitted garments...
             </p>
           </div>
           <div className="max-w-7xl mx-auto">
-            <div className="overflow-hidden rounded-3xl shadow-2xl bg-white p-2 md:p-4">
+            <div className="overflow-hidden rounded-3xl shadow-2xl bg-card border border-border p-2 md:p-4">
               <div className="flex">
                 <div className="w-full md:w-1/3 px-1 md:px-3">
                   <div className="relative">
                     <div className="overflow-hidden rounded-xl md:rounded-2xl shadow-lg">
-                      <div className="w-full h-64 md:h-96 bg-gray-200 animate-pulse rounded-xl"></div>
+                      <div className="w-full h-64 md:h-96 bg-muted animate-pulse rounded-xl"></div>
                     </div>
                   </div>
                 </div>
@@ -130,13 +130,13 @@ export const Gallery = () => {
   }
 
   return (
-    <section id="gallery-section" className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <section id="gallery-section" className="py-20 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-foreground mb-4">
             Our Work Gallery
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             See the precision and quality of our tailoring work through our gallery of perfectly fitted garments
           </p>
         </div>
@@ -146,8 +146,8 @@ export const Gallery = () => {
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
         >
-          {/* Gallery Container */}
-          <div className="overflow-hidden rounded-3xl shadow-2xl bg-white p-2 md:p-4">
+          {/* Gallery Container - Theme Aware */}
+          <div className="overflow-hidden rounded-3xl shadow-2xl bg-card border border-border p-2 md:p-4">
             <div
               className="flex transition-all duration-700 ease-out transform"
               style={{
@@ -189,13 +189,13 @@ export const Gallery = () => {
             </div>
           </div>
 
-          {/* Navigation Arrows - only show when multiple images loaded */}
+          {/* Navigation Arrows - Theme Aware */}
           {galleryImages.length > 1 && (
             <>
               <button
                 onClick={prevSlide}
                 disabled={isTransitioning}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/95 hover:bg-white text-gray-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-125 hover:shadow-2xl disabled:opacity-50 backdrop-blur-sm"
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-background/95 hover:bg-background text-foreground p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-125 hover:shadow-2xl disabled:opacity-50 backdrop-blur-sm border border-border"
                 aria-label="Previous images"
               >
                 <ChevronLeft className="w-7 h-7" />
@@ -204,7 +204,7 @@ export const Gallery = () => {
               <button
                 onClick={nextSlide}
                 disabled={isTransitioning}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/95 hover:bg-white text-gray-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-125 hover:shadow-2xl disabled:opacity-50 backdrop-blur-sm"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-background/95 hover:bg-background text-foreground p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-125 hover:shadow-2xl disabled:opacity-50 backdrop-blur-sm border border-border"
                 aria-label="Next images"
               >
                 <ChevronRight className="w-7 h-7" />
@@ -212,7 +212,7 @@ export const Gallery = () => {
             </>
           )}
 
-          {/* Progress Dots - only show when multiple images loaded */}
+          {/* Progress Dots - Theme Aware */}
           {galleryImages.length > 1 && maxIndex > 0 && (
             <div className="flex justify-center mt-10 space-x-3">
               {Array.from({ length: maxIndex + 1 }).map((_, index) => (
@@ -221,8 +221,8 @@ export const Gallery = () => {
                   onClick={() => goToSlide(index)}
                   disabled={isTransitioning}
                   className={`transition-all duration-300 rounded-full ${index === currentIndex
-                    ? "w-12 h-4 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg"
-                    : "w-4 h-4 bg-gray-300 hover:bg-gray-500 hover:scale-125"
+                    ? "w-12 h-4 bg-gradient-to-r from-primary to-primary/80 shadow-lg"
+                    : "w-4 h-4 bg-muted hover:bg-muted-foreground/50 hover:scale-125"
                     }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
@@ -230,13 +230,13 @@ export const Gallery = () => {
             </div>
           )}
 
-          {/* Auto-play indicator */}
+          {/* Auto-play indicator - Theme Aware */}
           {galleryImages.length > 1 && (
             <div className="text-center mt-6">
-              <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
-                <div className={`w-2 h-2 rounded-full transition-all duration-300 ${isAutoPlaying ? "bg-green-500 animate-pulse" : "bg-gray-400"
+              <div className="inline-flex items-center space-x-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-border">
+                <div className={`w-2 h-2 rounded-full transition-all duration-300 ${isAutoPlaying ? "bg-green-500 animate-pulse" : "bg-muted-foreground"
                   }`}></div>
-                <p className="text-sm text-gray-600 font-medium">
+                <p className="text-sm text-muted-foreground font-medium">
                   {isAutoPlaying ? "Auto-playing" : "Paused"} • Hover to pause
                 </p>
               </div>
