@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from "@/hooks/useAuth";
+import { DescopeProvider } from "@/hooks/useDescope";
 import Index from "./pages/Index";
 import Splash from "./pages/Splash";
 import Auth from "./pages/Auth";
@@ -19,7 +19,7 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
+        <DescopeProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -34,7 +34,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </AuthProvider>
+        </DescopeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </HelmetProvider>
