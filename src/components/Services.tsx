@@ -1,9 +1,11 @@
 import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Clock, Truck } from "lucide-react";
+import { ShoppingCart, Plus, Check, Clock, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { serviceCategories, ServiceItem, getMinPrice } from "@/data/services";
+import { useCart } from "@/contexts/CartContext";
+import { ServicesCarousel } from "@/components/ServicesCarousel";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -32,12 +34,9 @@ export const Services = () => {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [selectedCategory, setSelectedCategory] = useState<string>("male");
   const navigate = useNavigate();
+  const { totalItems } = useCart();
 
   const currentCategory = serviceCategories.find(c => c.id === selectedCategory);
-
-  const handleBookNow = (serviceName: string) => {
-    navigate(`/booking?service=${encodeURIComponent(serviceName)}`);
-  };
 
   return (
     <section ref={ref} id="services" className="py-16 md:py-24 relative overflow-hidden">
@@ -72,6 +71,28 @@ export const Services = () => {
             </span>
           </div>
         </motion.div>
+
+        {/* Image Carousel */}
+        <ServicesCarousel />
+
+        {/* Cart Summary Bar */}
+        {totalItems > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-auto z-50"
+          >
+            <Button
+              variant="gold"
+              size="lg"
+              className="w-full md:w-auto shadow-2xl"
+              onClick={() => navigate("/booking")}
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              View Cart ({totalItems}) - Book Now
+            </Button>
+          </motion.div>
+        )}
 
         {/* Category Tabs */}
         <motion.div
@@ -124,18 +145,17 @@ export const Services = () => {
                     <div className="flex-1 h-px bg-border" />
                   </motion.div>
 
-                  {/* Services Grid - Compact mobile layout */}
+                  {/* Services Grid */}
                   <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate={isInView ? "visible" : "hidden"}
-                    className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4"
+                    className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5"
                   >
                     {subcategory.items.map((service) => (
                       <ServiceCard
                         key={service.id}
                         service={service}
-                        onBook={() => handleBookNow(service.name)}
                       />
                     ))}
                   </motion.div>
@@ -151,61 +171,81 @@ export const Services = () => {
 
 interface ServiceCardProps {
   service: ServiceItem;
-  onBook: () => void;
 }
 
-const ServiceCard = ({ service, onBook }: ServiceCardProps) => {
+const ServiceCard = ({ service }: ServiceCardProps) => {
   const minPrice = getMinPrice(service);
+  const { addToCart, isInCart } = useCart();
+  const inCart = isInCart(service.id);
   
   return (
     <motion.div
       variants={cardVariants}
+      whileHover={{ y: -5 }}
       whileTap={{ scale: 0.98 }}
-      className="group relative bg-gradient-card rounded-lg md:rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-gold cursor-pointer"
-      onClick={onBook}
+      className="group relative bg-card rounded-xl md:rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-gold"
     >
-      {/* Content - Compact for mobile */}
-      <div className="relative z-10 p-2.5 md:p-4">
-        {/* Image - Smaller on mobile */}
-        <div className="w-10 h-10 md:w-14 md:h-14 mx-auto mb-2 md:mb-3 relative">
-          <img
-            src={service.image}
-            alt={`${service.name} alteration service`}
-            className="w-full h-full object-contain"
-          />
-        </div>
+      {/* Service Image */}
+      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+        <img
+          src={service.image}
+          alt={`${service.name} alteration service`}
+          className="w-full h-full object-contain p-4 md:p-6 transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+        />
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* In Cart Badge */}
+        {inCart && (
+          <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
+            <Check className="w-3 h-3 md:w-4 md:h-4" />
+          </div>
+        )}
+      </div>
 
+      {/* Content */}
+      <div className="p-3 md:p-4">
         {/* Service Name */}
-        <h4 className="font-display text-xs md:text-sm font-semibold text-center mb-1 md:mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+        <h4 className="font-display text-sm md:text-base font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
           {service.name}
         </h4>
         
-        {/* Variants count - Mobile only shows count */}
+        {/* Variants count */}
         {service.variants && service.variants.length > 1 && (
-          <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-1.5 md:mb-2">
-            {service.variants.length} options
+          <p className="text-[10px] md:text-xs text-muted-foreground mb-2">
+            {service.variants.length} alteration options
           </p>
         )}
 
         {/* Price & CTA */}
-        <div className="flex flex-col items-center gap-1.5 md:gap-2">
-          <div className="text-center">
-            <span className="text-[8px] md:text-[10px] text-muted-foreground block">From</span>
-            <p className="text-sm md:text-lg font-display font-bold text-primary">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <span className="text-[9px] md:text-[10px] text-muted-foreground block">Starting from</span>
+            <p className="text-base md:text-xl font-display font-bold text-primary">
               ₹{minPrice}
             </p>
           </div>
           <Button
-            variant="gold"
+            variant={inCart ? "goldOutline" : "gold"}
             size="sm"
-            className="text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 h-6 md:h-8 w-full"
+            className="text-[10px] md:text-xs px-2.5 md:px-4 py-1 h-7 md:h-9"
             onClick={(e) => {
               e.stopPropagation();
-              onBook();
+              addToCart(service);
             }}
           >
-            Book
-            <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3 ml-0.5 md:ml-1" />
+            {inCart ? (
+              <>
+                <Plus className="w-3 h-3 mr-0.5" />
+                Add More
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-3 h-3 mr-0.5" />
+                Add
+              </>
+            )}
           </Button>
         </div>
       </div>

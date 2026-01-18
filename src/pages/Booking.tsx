@@ -15,6 +15,8 @@ import {
   Minus,
   ShoppingCart,
   Download,
+  Trash2,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import SEO from "@/components/SEO";
+import { useCart } from "@/contexts/CartContext";
 
 const timeSlots = [
   "09:00 AM",
@@ -94,11 +97,14 @@ const Booking = () => {
   const preSelectedService = searchParams.get("service") || "";
   const preSelectedServices = searchParams.get("services") || "";
 
+  const { items: cartItems, updateQuantity: updateCartQuantity, removeFromCart, clearCart, totalAmount: cartTotal } = useCart();
+
   const [state, handleSubmit] = useForm("xjknnzow");
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>("");
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const [formData, setFormData] = useState({
     houseNumber: "",
@@ -109,6 +115,20 @@ const Booking = () => {
     phone2: "",
     mapLink: "",
   });
+
+  // Initialize with cart items on mount
+  useEffect(() => {
+    if (!hasInitialized && cartItems.length > 0) {
+      const cartServices: SelectedService[] = cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+      setSelectedServices(cartServices);
+      setHasInitialized(true);
+    }
+  }, [cartItems, hasInitialized]);
 
   useEffect(() => {
     let cancelled = false;
@@ -124,8 +144,8 @@ const Booking = () => {
       if (!error && data) {
         setServices(data);
 
-        // Pre-select services if provided in URL (only if user hasn't selected anything yet)
-        if (selectedServices.length === 0) {
+        // Pre-select services if provided in URL (only if user hasn't selected anything yet and no cart items)
+        if (selectedServices.length === 0 && cartItems.length === 0) {
           const servicesToPreselect: SelectedService[] = [];
 
           // Handle multiple services from Hero component (services parameter)
@@ -158,7 +178,6 @@ const Booking = () => {
     return () => {
       cancelled = true;
     };
-    // Intentionally not depending on selectedServices to avoid re-preselect loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preSelectedService, preSelectedServices]);
 
@@ -187,6 +206,11 @@ const Booking = () => {
         return { ...s, quantity: Math.max(1, s.quantity + delta) };
       }),
     );
+  };
+
+  const removeService = (serviceId: string) => {
+    setSelectedServices((prev) => prev.filter((s) => s.id !== serviceId));
+    removeFromCart(serviceId);
   };
 
   const generateInvoicePDF = useCallback(() => {
@@ -358,6 +382,11 @@ const Booking = () => {
     formDataToSubmit.set("place", formData.place);
 
     await handleSubmit(formDataToSubmit);
+    
+    // Clear cart on successful submission
+    if (!state.errors) {
+      clearCart();
+    }
   };
 
   if (state.succeeded) {
@@ -426,29 +455,105 @@ const Booking = () => {
           className="bg-gradient-card border border-border rounded-2xl p-6 md:p-8"
         >
           <form onSubmit={onFormSubmit} className="space-y-6">
-            {/* Service Selection */}
+            {/* Cart Items Section */}
+            {selectedServices.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  <h3 className="font-display font-semibold text-lg">Your Selected Services</h3>
+                  <span className="ml-auto text-sm text-muted-foreground">
+                    {selectedServices.reduce((sum, s) => sum + s.quantity, 0)} items
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {selectedServices.map((service) => (
+                    <motion.div
+                      key={service.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Package className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold truncate">{service.name}</p>
+                            <p className="text-sm text-primary font-medium">₹{service.price} each</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => updateQuantity(service.id, -1)}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <span className="w-8 text-center font-semibold text-sm">{service.quantity}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => updateQuantity(service.id, 1)}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => removeService(service.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-border flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">Subtotal</span>
+                        <span className="font-bold text-primary">₹{service.price * service.quantity}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total Amount:</span>
+                    <span className="text-2xl font-bold text-primary">₹{totalAmount}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Add More Services */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
-                <ShoppingCart className="w-5 h-5 text-primary" />
-                <h3 className="font-display font-semibold text-lg">Select Services</h3>
+                <Plus className="w-5 h-5 text-primary" />
+                <h3 className="font-display font-semibold text-lg">Add More Services</h3>
               </div>
 
               <p className="text-sm text-muted-foreground mb-4">
-                Choose one or more services. You can select Pant + Shirt together or any combination.
+                Choose additional services. You can select multiple items.
               </p>
 
-              <div className="grid gap-3">
-                {services.map((service) => {
-                  const isSelected = selectedServices.some((s) => s.id === service.id);
-                  const selectedItem = selectedServices.find((s) => s.id === service.id);
-
-                  return (
+              <div className="grid gap-3 max-h-64 overflow-y-auto">
+                {services
+                  .filter(s => !selectedServices.some(sel => sel.id === s.id))
+                  .map((service) => (
                     <div
                       key={service.id}
-                      className={cn(
-                        "border rounded-xl p-4 transition-all",
-                        isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-                      )}
+                      className="border border-border rounded-xl p-4 hover:border-primary/50 transition-all cursor-pointer"
                       role="button"
                       tabIndex={0}
                       onClick={() => toggleService(service)}
@@ -457,62 +562,26 @@ const Booking = () => {
                       }}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleService(service)}
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label={`Select ${service.name}`}
-                            className="h-4 w-4 rounded border border-primary/40 bg-background accent-[hsl(var(--primary))]"
-                          />
-                          <div className="min-w-0">
-                            <p className="font-semibold truncate">{service.name}</p>
-                            <p className="text-sm text-primary font-medium">₹{service.price} per item</p>
-                          </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate">{service.name}</p>
+                          <p className="text-sm text-primary font-medium">₹{service.price} per item</p>
                         </div>
-
-                        {isSelected && (
-                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => updateQuantity(service.id, -1)}
-                            >
-                              <Minus className="w-4 h-4" />
-                            </Button>
-                            <span className="w-8 text-center font-semibold">{selectedItem?.quantity || 1}</span>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => updateQuantity(service.id, 1)}
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        )}
+                        <Button
+                          type="button"
+                          variant="goldOutline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleService(service);
+                          }}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add
+                        </Button>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
               </div>
-
-              {selectedServices.length > 0 && (
-                <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-muted-foreground">Selected Items:</span>
-                    <span className="text-sm">{selectedServices.reduce((sum, s) => sum + s.quantity, 0)} items</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Total Amount:</span>
-                    <span className="text-2xl font-bold text-primary">₹{totalAmount}</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Address */}
