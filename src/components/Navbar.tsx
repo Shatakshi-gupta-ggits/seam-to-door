@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Scissors, User, LogOut, CalendarCheck, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useDescopeAuth } from "@/hooks/useDescope";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,12 +21,13 @@ const navLinks = [
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { isAuthenticated, user, logout } = useDescopeAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
+    localStorage.removeItem('descope_user');
     navigate('/');
   };
 
@@ -95,7 +96,7 @@ export const Navbar = () => {
 
           {/* Right Section */}
           <div className="hidden md:flex items-center gap-4">
-            {user ? (
+            {isAuthenticated ? (
               <>
                 {/* User Menu */}
                 <DropdownMenu>
@@ -166,7 +167,7 @@ export const Navbar = () => {
                 </motion.button>
               ))}
               
-              {user ? (
+              {isAuthenticated ? (
                 <>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
