@@ -32,7 +32,7 @@ export const useCart = () => {
   return context;
 };
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
     // Load from localStorage on init
     const saved = localStorage.getItem("cart_items");
@@ -49,7 +49,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItems((prev) => {
       const existing = prev.find((item) => item.id === service.id);
       let newItems: CartItem[];
-      
+
       if (existing) {
         newItems = prev.map((item) =>
           item.id === service.id
@@ -69,7 +69,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         newItems = [...prev, newItem];
         toast.success(`${service.name} added to cart`);
       }
-      
+
       localStorage.setItem("cart_items", JSON.stringify(newItems));
       return newItems;
     });
@@ -86,7 +86,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateQuantity = useCallback((serviceId: string, quantity: number) => {
     if (quantity < 1) return;
-    
+
     setItems((prev) => {
       const newItems = prev.map((item) =>
         item.id === serviceId ? { ...item, quantity } : item

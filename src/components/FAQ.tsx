@@ -1,3 +1,4 @@
+import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import {
   Accordion,
@@ -5,12 +6,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useRef } from "react";
 
-const faqs = [
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+const faqs: FAQ[] = [
   {
     question: "What areas do you serve?",
-    answer: "We currently operate in major metropolitan areas including Mumbai, Delhi, Bangalore, Pune, and Hyderabad. We're expanding rapidly — enter your pincode on our booking form to check availability in your area.",
+    answer: "We currently operate in all areas of Jabalpur. We're expanding rapidly — enter your pincode on our booking form to check availability in your area.",
   },
   {
     question: "How long does the alteration take?",
@@ -34,8 +39,8 @@ const faqs = [
   },
 ];
 
-export const FAQ = () => {
-  const ref = useRef(null);
+export const FAQ: React.FC = () => {
+  const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
@@ -65,17 +70,17 @@ export const FAQ = () => {
         <div className="max-w-3xl mx-auto">
           {/* Background decoration */}
           <div className="absolute inset-0 overflow-hidden">
-            <motion.div 
-              animate={{ 
+            <motion.div
+              animate={{
                 rotate: [0, 360],
                 scale: [1, 1.1, 1]
               }}
-              transition={{ 
-                duration: 20, 
-                repeat: Infinity, 
-                ease: "linear" 
+              transition={{
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear"
               }}
-              className="absolute top-1/4 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" 
+              className="absolute top-1/4 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
             />
           </div>
 
@@ -85,13 +90,13 @@ export const FAQ = () => {
                 key={index}
                 initial={{ opacity: 0, x: -50, rotateY: -10 }}
                 animate={isInView ? { opacity: 1, x: 0, rotateY: 0 } : { opacity: 0, x: -50, rotateY: -10 }}
-                transition={{ 
-                  duration: 0.6, 
+                transition={{
+                  duration: 0.6,
                   delay: index * 0.1,
                   type: "spring",
                   stiffness: 100
                 }}
-                whileHover={{ 
+                whileHover={{
                   scale: 1.02,
                   rotateY: 2,
                   transition: { duration: 0.3 }
