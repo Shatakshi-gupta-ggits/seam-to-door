@@ -133,41 +133,40 @@ const Booking = () => {
     let cancelled = false;
 
     const fetchServices = async () => {
-      const { data, error } = await supabase
-        .from("services")
-        .select("id, name, price")
-        .eq("is_active", true);
+      // Supabase fetch removed - using mock services instead
+      const mockServices: Service[] = [
+        { id: '1', name: 'Shirt Alteration', price: 150 },
+        { id: '2', name: 'Trouser Hemming', price: 100 },
+        { id: '3', name: 'Dress Fitting', price: 200 },
+      ];
 
       if (cancelled) return;
+      setServices(mockServices);
 
-      if (!error && data) {
-        setServices(data);
+      // Pre-select services if provided in URL (only if user hasn't selected anything yet and no cart items)
+      if (selectedServices.length === 0 && cartItems.length === 0) {
+        const servicesToPreselect: SelectedService[] = [];
 
-        // Pre-select services if provided in URL (only if user hasn't selected anything yet and no cart items)
-        if (selectedServices.length === 0 && cartItems.length === 0) {
-          const servicesToPreselect: SelectedService[] = [];
-
-          // Handle multiple services from Hero component (services parameter)
-          if (preSelectedServices) {
-            const serviceNames = preSelectedServices.split(',').map(name => name.trim());
-            serviceNames.forEach(serviceName => {
-              const service = data.find((s) => s.name === serviceName);
-              if (service) {
-                servicesToPreselect.push({ ...service, quantity: 1 });
-              }
-            });
-          }
-          // Handle single service (service parameter) - for backward compatibility
-          else if (preSelectedService) {
-            const service = data.find((s) => s.name === preSelectedService);
+        // Handle multiple services from Hero component (services parameter)
+        if (preSelectedServices) {
+          const serviceNames = preSelectedServices.split(',').map(name => name.trim());
+          serviceNames.forEach(serviceName => {
+            const service = mockServices.find((s) => s.name === serviceName);
             if (service) {
               servicesToPreselect.push({ ...service, quantity: 1 });
             }
+          });
+        }
+        // Handle single service (service parameter) - for backward compatibility
+        else if (preSelectedService) {
+          const service = mockServices.find((s) => s.name === preSelectedService);
+          if (service) {
+            servicesToPreselect.push({ ...service, quantity: 1 });
           }
+        }
 
-          if (servicesToPreselect.length > 0) {
-            setSelectedServices(servicesToPreselect);
-          }
+        if (servicesToPreselect.length > 0) {
+          setSelectedServices(servicesToPreselect);
         }
       }
     };
