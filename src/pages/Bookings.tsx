@@ -4,8 +4,6 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, Loader2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
@@ -44,40 +42,18 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 };
 
 const Bookings = () => {
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    } else if (user) {
-      fetchOrders();
-    }
-  }, [user, authLoading, navigate]);
+    fetchOrders();
+  }, []);
 
   const fetchOrders = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (*)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setOrders(data || []);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Supabase calls removed - database no longer in use
+    setLoading(false);
   };
 
   const handleFasterDelivery = (orderId: string, orderNumber: string) => {
@@ -96,7 +72,7 @@ const Bookings = () => {
     }));
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

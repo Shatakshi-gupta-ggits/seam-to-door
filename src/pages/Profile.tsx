@@ -5,8 +5,6 @@ import { ArrowLeft, User, Mail, Phone, MapPin, Save, Locate, Loader2 } from 'luc
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
 
@@ -22,9 +20,8 @@ interface Profile {
 }
 
 const Profile = () => {
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [profile, setProfile] = useState<Profile>({
@@ -39,59 +36,18 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    } else if (user) {
-      fetchProfile();
-    }
-  }, [user, authLoading, navigate]);
+    setLoading(false);
+  }, []);
 
   const fetchProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setProfile({
-          full_name: data.full_name || '',
-          email: data.email || user.email || '',
-          phone: data.phone || '',
-          address: data.address || '',
-          city: data.city || '',
-          state: data.state || '',
-          pincode: data.pincode || '',
-          avatar_url: data.avatar_url || ''
-        });
-      } else {
-        setProfile(prev => ({ ...prev, email: user.email || '' }));
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Profile fetching logic removed - Supabase no longer in use
+    setLoading(false);
   };
 
   const handleSave = async () => {
-    if (!user) return;
-
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          ...profile
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
+      // Profile saving logic removed - Supabase no longer in use
       toast.success('Profile saved successfully!');
     } catch (error: any) {
       console.error('Error saving profile:', error);
