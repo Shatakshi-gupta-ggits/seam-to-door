@@ -17,6 +17,8 @@ import {
   Download,
   Trash2,
   Package,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { jsPDF } from "jspdf";
 import SEO from "@/components/SEO";
 import { useCart } from "@/contexts/CartContext";
+import { serviceCategories, ServiceItem, ServiceVariant, getMinPrice } from "@/data/services";
 
 const timeSlots = [
   "09:00 AM",
@@ -81,6 +84,9 @@ interface Service {
   id: string;
   name: string;
   price: number;
+  category?: string;
+  subcategory?: string;
+  variants?: ServiceVariant[];
 }
 
 interface SelectedService {
@@ -88,6 +94,7 @@ interface SelectedService {
   name: string;
   price: number;
   quantity: number;
+  selectedVariant?: ServiceVariant;
 }
 
 const Booking = () => {
@@ -101,9 +108,14 @@ const Booking = () => {
   const [state, handleSubmit] = useForm("xjknnzow");
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>("");
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<ServiceItem[]>([]);
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({
+    'male': true, // Open male category by default
+    'female': true // Open female category by default
+  });
+  const [expandedSubcategories, setExpandedSubcategories] = useState<{[key: string]: boolean}>({});
 
   const [formData, setFormData] = useState({
     houseNumber: "",
@@ -133,15 +145,16 @@ const Booking = () => {
     let cancelled = false;
 
     const fetchServices = async () => {
-      // Supabase fetch removed - using mock services instead
-      const mockServices: Service[] = [
-        { id: '1', name: 'Shirt Alteration', price: 150 },
-        { id: '2', name: 'Trouser Hemming', price: 100 },
-        { id: '3', name: 'Dress Fitting', price: 200 },
-      ];
+      // Get all services from the comprehensive service data
+      const allServices: ServiceItem[] = [];
+      serviceCategories.forEach((category) => {
+        category.subcategories.forEach((subcategory) => {
+          allServices.push(...subcategory.items);
+        });
+      });
 
       if (cancelled) return;
-      setServices(mockServices);
+      setServices(allServices);
 
       // Pre-select services if provided in URL (only if user hasn't selected anything yet and no cart items)
       if (selectedServices.length === 0 && cartItems.length === 0) {
@@ -151,17 +164,27 @@ const Booking = () => {
         if (preSelectedServices) {
           const serviceNames = preSelectedServices.split(',').map(name => name.trim());
           serviceNames.forEach(serviceName => {
-            const service = mockServices.find((s) => s.name === serviceName);
+            const service = allServices.find((s) => s.name === serviceName);
             if (service) {
-              servicesToPreselect.push({ ...service, quantity: 1 });
+              servicesToPreselect.push({ 
+                id: service.id, 
+                name: service.name, 
+                price: getMinPrice(service), 
+                quantity: 1 
+              });
             }
           });
         }
         // Handle single service (service parameter) - for backward compatibility
         else if (preSelectedService) {
-          const service = mockServices.find((s) => s.name === preSelectedService);
+          const service = allServices.find((s) => s.name === preSelectedService);
           if (service) {
-            servicesToPreselect.push({ ...service, quantity: 1 });
+            servicesToPreselect.push({ 
+              id: service.id, 
+              name: service.name, 
+              price: getMinPrice(service), 
+              quantity: 1 
+            });
           }
         }
 
@@ -189,12 +212,34 @@ const Booking = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const toggleService = (service: Service) => {
+  const toggleService = (service: ServiceItem, variant?: ServiceVariant) => {
     setSelectedServices((prev) => {
       const existing = prev.find((s) => s.id === service.id);
       if (existing) return prev.filter((s) => s.id !== service.id);
-      return [...prev, { ...service, quantity: 1 }];
+      
+      const price = variant ? variant.price : getMinPrice(service);
+      return [...prev, { 
+        id: service.id, 
+        name: service.name, 
+        price, 
+        quantity: 1,
+        selectedVariant: variant 
+      }];
     });
+  };
+
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
+  const toggleSubcategoryExpansion = (subcategoryKey: string) => {
+    setExpandedSubcategories(prev => ({
+      ...prev,
+      [subcategoryKey]: !prev[subcategoryKey]
+    }));
   };
 
   const updateQuantity = (serviceId: string, delta: number) => {
@@ -326,7 +371,10 @@ const Booking = () => {
     doc.setFont("helvetica", "normal");
     selectedServices.forEach((service) => {
       const lineTotal = service.price * service.quantity;
-      doc.text(service.name, 25, yPos);
+      const serviceName = service.selectedVariant 
+        ? `${service.name} (${service.selectedVariant.name})`
+        : service.name;
+      doc.text(serviceName, 25, yPos);
       doc.text(service.quantity.toString(), 110, yPos);
       doc.text(`₹${service.price}`, 135, yPos);
       doc.text(`₹${lineTotal}`, 165, yPos);
@@ -372,7 +420,12 @@ const Booking = () => {
 
     // Add services info
     const servicesText = selectedServices
-      .map((s) => `${s.name} (Qty: ${s.quantity}) - ₹${s.price * s.quantity}`)
+      .map((s) => {
+        const serviceName = s.selectedVariant 
+          ? `${s.name} (${s.selectedVariant.name})`
+          : s.name;
+        return `${serviceName} (Qty: ${s.quantity}) - ₹${s.price * s.quantity}`;
+      })
       .join("\n");
     formDataToSubmit.set("services_details", servicesText);
     formDataToSubmit.set("total_items_count", selectedServices.reduce((acc, curr) => acc + curr.quantity, 0).toString());
@@ -480,6 +533,11 @@ const Booking = () => {
                           </div>
                           <div className="min-w-0">
                             <p className="font-semibold truncate">{service.name}</p>
+                            {service.selectedVariant && (
+                              <p className="text-xs text-muted-foreground">
+                                {service.selectedVariant.name}
+                              </p>
+                            )}
                             <p className="text-sm text-primary font-medium">₹{service.price} each</p>
                           </div>
                         </div>
@@ -542,43 +600,123 @@ const Booking = () => {
               </div>
 
               <p className="text-sm text-muted-foreground mb-4">
-                Choose additional services. You can select multiple items.
+                Choose from our comprehensive alteration services. Select categories to explore options.
               </p>
 
-              <div className="grid gap-3 max-h-64 overflow-y-auto">
-                {services
-                  .filter(s => !selectedServices.some(sel => sel.id === s.id))
-                  .map((service) => (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {serviceCategories.map((category) => (
+                  <div key={category.id} className="border border-border rounded-xl overflow-hidden">
+                    {/* Category Header */}
                     <div
-                      key={service.id}
-                      className="border border-border rounded-xl p-4 hover:border-primary/50 transition-all cursor-pointer"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => toggleService(service)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") toggleService(service);
-                      }}
+                      className="flex items-center justify-between p-4 bg-card/50 cursor-pointer hover:bg-card/70 transition-colors"
+                      onClick={() => toggleCategoryExpansion(category.id)}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-semibold truncate">{service.name}</p>
-                          <p className="text-sm text-primary font-medium">₹{service.price} per item</p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="goldOutline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleService(service);
-                          }}
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add
-                        </Button>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{category.icon}</span>
+                        <h4 className="font-semibold text-lg">{category.name}</h4>
                       </div>
+                      {expandedCategories[category.id] ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      )}
                     </div>
-                  ))}
+
+                    {/* Category Content */}
+                    {expandedCategories[category.id] && (
+                      <div className="border-t border-border">
+                        {category.subcategories.map((subcategory) => {
+                          const subcategoryKey = `${category.id}-${subcategory.name}`;
+                          return (
+                            <div key={subcategoryKey} className="border-b border-border last:border-b-0">
+                              {/* Subcategory Header */}
+                              <div
+                                className="flex items-center justify-between p-3 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                                onClick={() => toggleSubcategoryExpansion(subcategoryKey)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{subcategory.icon}</span>
+                                  <h5 className="font-medium">{subcategory.name}</h5>
+                                  <span className="text-xs text-muted-foreground">
+                                    ({subcategory.items.length} items)
+                                  </span>
+                                </div>
+                                {expandedSubcategories[subcategoryKey] ? (
+                                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </div>
+
+                              {/* Services in Subcategory */}
+                              {expandedSubcategories[subcategoryKey] && (
+                                <div className="p-3 space-y-3">
+                                  {subcategory.items
+                                    .filter(service => !selectedServices.some(sel => sel.id === service.id))
+                                    .map((service) => (
+                                      <div
+                                        key={service.id}
+                                        className="border border-border rounded-lg p-3 hover:border-primary/50 transition-all"
+                                      >
+                                        <div className="flex items-start justify-between gap-3 mb-2">
+                                          <div className="min-w-0 flex-1">
+                                            <p className="font-semibold truncate">{service.name}</p>
+                                            <p className="text-xs text-muted-foreground mb-1">{service.description}</p>
+                                            <p className="text-xs text-muted-foreground">⏱️ {service.time}</p>
+                                          </div>
+                                          <div className="text-right">
+                                            <p className="text-sm font-medium text-primary">
+                                              {service.variants && service.variants.length > 0 
+                                                ? `From ₹${getMinPrice(service)}`
+                                                : `₹${service.price}`
+                                              }
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        {/* Service Variants */}
+                                        {service.variants && service.variants.length > 0 ? (
+                                          <div className="space-y-2">
+                                            <p className="text-xs font-medium text-muted-foreground">Choose alteration type:</p>
+                                            <div className="grid gap-2">
+                                              {service.variants.map((variant) => (
+                                                <Button
+                                                  key={variant.name}
+                                                  type="button"
+                                                  variant="outline"
+                                                  size="sm"
+                                                  className="justify-between h-auto p-2"
+                                                  onClick={() => toggleService(service, variant)}
+                                                >
+                                                  <span className="text-xs">{variant.name}</span>
+                                                  <span className="text-xs font-semibold text-primary">₹{variant.price}</span>
+                                                </Button>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <Button
+                                            type="button"
+                                            variant="goldOutline"
+                                            size="sm"
+                                            className="w-full"
+                                            onClick={() => toggleService(service)}
+                                          >
+                                            <Plus className="w-3 h-3 mr-1" />
+                                            Add Service - ₹{service.price}
+                                          </Button>
+                                        )}
+                                      </div>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -788,7 +926,12 @@ const Booking = () => {
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Services:</span>
                   <span className="text-sm">
-                    {selectedServices.map((s) => `${s.name} x${s.quantity}`).join(", ")}
+                    {selectedServices.map((s) => {
+                      const serviceName = s.selectedVariant 
+                        ? `${s.name} (${s.selectedVariant.name})`
+                        : s.name;
+                      return `${serviceName} x${s.quantity}`;
+                    }).join(", ")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border">
