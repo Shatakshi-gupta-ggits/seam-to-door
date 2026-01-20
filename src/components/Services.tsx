@@ -72,7 +72,6 @@ export const Services = () => {
         {/* Image Carousel */}
         <ServicesCarousel />
 
-
         {/* Category Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
