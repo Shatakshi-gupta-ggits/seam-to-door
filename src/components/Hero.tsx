@@ -4,199 +4,13 @@ import { Shield, Sparkles, Clock, ChevronRight, Phone, MessageCircle, ChevronDow
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroTailor from "@/assets/hero-tailor.jpg";
+import { serviceCategories, ServiceItem, getMinPrice } from "@/data/services";
 
 const trustBadges = [
   { icon: Shield, label: "Verified Tailors" },
   { icon: Sparkles, label: "Hygiene Safe" },
   { icon: Clock, label: "48hr Delivery" },
 ];
-
-// Male categories with sub-options
-const maleCategories = [
-  {
-    category: "Bottom Wear",
-    icon: Package,
-    options: [
-      { label: "Pant (Formal/Casual)", value: "pant" },
-      { label: "Jeans", value: "jeans" },
-      { label: "Chinos", value: "chinos" },
-      { label: "Trouser", value: "trouser" },
-      { label: "Pyjama", value: "pyjama" },
-      { label: "Shorts", value: "shorts" },
-    ]
-  },
-  {
-    category: "Top Wear",
-    icon: Shirt,
-    options: [
-      { label: "Shirt (Formal/Casual)", value: "shirt" },
-      { label: "T-Shirt", value: "tshirt" },
-      { label: "Kurta", value: "kurta" },
-    ]
-  },
-  {
-    category: "Ethnic / Occasion Wear",
-    icon: Shield,
-    options: [
-      { label: "Blazer", value: "blazer" },
-      { label: "Sherwani", value: "sherwani" },
-      { label: "Nehru Jacket", value: "nehru" },
-      { label: "Bandhgala Suit", value: "bandhgala" },
-      { label: "Indo-Western", value: "indo_western" },
-    ]
-  }
-];
-
-// Female categories with sub-options
-const femaleCategories = [
-  {
-    category: "Top Wear",
-    icon: Shirt,
-    options: [
-      { label: "Kurti", value: "kurti" },
-      { label: "Top", value: "top" },
-      { label: "Shirt", value: "shirt_female" },
-      { label: "Tunic", value: "tunic" },
-    ]
-  },
-  {
-    category: "Bottom Wear",
-    icon: Package,
-    options: [
-      { label: "Salwar", value: "salwar" },
-      { label: "Palazzo", value: "palazzo" },
-      { label: "Pants", value: "pants" },
-      { label: "Jeans", value: "jeans_female" },
-      { label: "Trouser", value: "trouser_female" },
-    ]
-  }
-];
-
-// Specific alteration options for each garment
-const alterationOptions: Record<string, { label: string; value: string }[]> = {
-  // Male Jeans
-  jeans: [
-    { label: "Jeans Length - ₹141", value: "jeans_length" },
-    { label: "Jeans Waist - ₹91", value: "jeans_waist" },
-    { label: "Jeans Length + Waist - ₹231", value: "jeans_length_waist" },
-    { label: "Jeans Full Fitting - ₹261", value: "jeans_full" },
-  ],
-  // Male Chinos
-  chinos: [
-    { label: "Chinos Length - ₹141", value: "chinos_length" },
-    { label: "Chinos Waist - ₹91", value: "chinos_waist" },
-    { label: "Chinos Length + Waist - ₹221", value: "chinos_length_waist" },
-    { label: "Chinos Full Fitting - ₹261", value: "chinos_full" },
-  ],
-  // Male Trouser
-  trouser: [
-    { label: "Trouser Length - ₹141", value: "trouser_length" },
-    { label: "Trouser Waist - ₹141", value: "trouser_waist" },
-    { label: "Trouser Full Fitting - ₹301", value: "trouser_full" },
-  ],
-  // Male Pyjama
-  pyjama: [
-    { label: "Pyjama Length - ₹141", value: "pyjama_length" },
-    { label: "Pyjama Waist - ₹141", value: "pyjama_waist" },
-  ],
-  // Male Shorts
-  shorts: [
-    { label: "Shorts Length - ₹141", value: "shorts_length" },
-    { label: "Shorts Waist - ₹91", value: "shorts_waist" },
-  ],
-  // Male Shirt
-  shirt: [
-    { label: "Shirt Side Fitting - ₹141", value: "shirt_side" },
-    { label: "Shirt Shoulder Fitting - ₹241", value: "shirt_shoulder" },
-    { label: "Shirt Sleeves - ₹141", value: "shirt_sleeves" },
-    { label: "Shirt Full Fitting - ₹451", value: "shirt_full" },
-  ],
-  // Male T-Shirt
-  tshirt: [
-    { label: "T-Shirt Length - ₹161", value: "tshirt_length" },
-  ],
-  // Male Kurta
-  kurta: [
-    { label: "Kurta Length - ₹191", value: "kurta_length" },
-    { label: "Kurta Sleeves - ₹141", value: "kurta_sleeves" },
-    { label: "Kurta Shoulder - ₹241", value: "kurta_shoulder" },
-    { label: "Kurta Full Fitting - ₹491", value: "kurta_full" },
-  ],
-  // Male Blazer
-  blazer: [
-    { label: "Blazer Sleeves - ₹141", value: "blazer_sleeves" },
-    { label: "Blazer Side Fitting - ₹201", value: "blazer_side" },
-    { label: "Blazer Full Fitting - ₹341", value: "blazer_full" },
-  ],
-  // Male Sherwani
-  sherwani: [
-    { label: "Sherwani Sleeves - ₹391", value: "sherwani_sleeves" },
-    { label: "Sherwani Full Fitting - ₹1091", value: "sherwani_full" },
-  ],
-  // Male Nehru Jacket
-  nehru: [
-    { label: "Nehru Jacket Length - ₹181", value: "nehru_length" },
-    { label: "Nehru Jacket Back Fitting - ₹291", value: "nehru_back" },
-    { label: "Nehru Jacket Full Fitting - ₹471", value: "nehru_full" },
-  ],
-  // Male Bandhgala
-  bandhgala: [
-    { label: "Bandhgala Suit Sleeves - ₹291", value: "bandhgala_sleeves" },
-    { label: "Bandhgala Suit Full Fitting - ₹791", value: "bandhgala_full" },
-  ],
-  // Male Indo-Western
-  indo_western: [
-    { label: "Indo-Western Full Fitting - ₹1091", value: "indo_western_full" },
-  ],
-  // Female Kurti
-  kurti: [
-    { label: "Kurti Sleeve - ₹91", value: "kurti_sleeve" },
-    { label: "Kurti Side Fitting - ₹141", value: "kurti_side" },
-  ],
-  // Female Top
-  top: [
-    { label: "Top Side Fitting - ₹141", value: "top_side" },
-  ],
-  // Female Shirt
-  shirt_female: [
-    { label: "Shirt Sleeves - ₹111", value: "shirt_sleeves_female" },
-    { label: "Shirt Side Fitting - ₹141", value: "shirt_side_female" },
-  ],
-  // Female Tunic
-  tunic: [
-    { label: "Tunic Full Fitting - ₹291", value: "tunic_full" },
-  ],
-  // Female Salwar
-  salwar: [
-    { label: "Salwar - ₹91", value: "salwar_basic" },
-  ],
-  // Female Palazzo
-  palazzo: [
-    { label: "Palazzo Length - ₹121", value: "palazzo_length" },
-    { label: "Palazzo Waist - ₹141", value: "palazzo_waist" },
-  ],
-  // Female Pants
-  pants: [
-    { label: "Pants Length - ₹141", value: "pants_length" },
-    { label: "Pants Waist - ₹121", value: "pants_waist" },
-  ],
-  // Female Jeans
-  jeans_female: [
-    { label: "Jeans Length - ₹141", value: "jeans_length_female" },
-    { label: "Jeans Waist - ₹91", value: "jeans_waist_female" },
-  ],
-  // Female Trouser
-  trouser_female: [
-    { label: "Trouser Length - ₹141", value: "trouser_length_female" },
-    { label: "Trouser Waist - ₹121", value: "trouser_waist_female" },
-  ],
-  // Default Pant (Formal/Casual)
-  pant: [
-    { label: "Pant Length - ₹141", value: "pant_length" },
-    { label: "Pant Waist - ₹141", value: "pant_waist" },
-    { label: "Pant Full Fitting - ₹301", value: "pant_full" },
-  ],
-};
 
 export const Hero = () => {
   const ref = useRef(null);
@@ -207,7 +21,9 @@ export const Hero = () => {
   const [selectedGarment, setSelectedGarment] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  const categories = selectedGender === 'male' ? maleCategories : femaleCategories;
+  // Get categories from service data
+  const currentGenderServices = serviceCategories.find(cat => cat.id === selectedGender);
+  const categories = currentGenderServices?.subcategories || [];
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -254,23 +70,40 @@ export const Hero = () => {
     setSelectedCategory(null);
     setSelectedGarment(null);
     setSelectedServices([]);
+    setExpandedCategory(null);
   };
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
     setSelectedGarment(null);
     setExpandedCategory(expandedCategory === category ? null : category);
+    setSelectedServices([]);
   };
 
-  const handleGarmentSelect = (garment: string) => {
-    setSelectedGarment(garment);
+  const handleGarmentSelect = (serviceId: string) => {
+    setSelectedGarment(serviceId);
+    setSelectedServices([]);
   };
 
   const getCurrentOptions = () => {
-    if (selectedGarment && alterationOptions[selectedGarment]) {
-      return alterationOptions[selectedGarment];
+    if (!selectedGarment || !currentGenderServices) return [];
+
+    // Find the service by ID
+    let selectedService: ServiceItem | null = null;
+    for (const subcategory of currentGenderServices.subcategories) {
+      const service = subcategory.items.find(item => item.id === selectedGarment);
+      if (service) {
+        selectedService = service;
+        break;
+      }
     }
-    return [];
+
+    if (!selectedService || !selectedService.variants) return [];
+
+    return selectedService.variants.map(variant => ({
+      label: `${variant.name} - ₹${variant.price}`,
+      value: `${selectedService.id}-${variant.name}`
+    }));
   };
 
   return (
@@ -482,8 +315,8 @@ export const Hero = () => {
                     <button
                       onClick={() => handleGenderSelect('male')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'male'
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                         }`}
                     >
                       <User className="w-5 h-5" />
@@ -492,8 +325,8 @@ export const Hero = () => {
                     <button
                       onClick={() => handleGenderSelect('female')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'female'
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                         }`}
                     >
                       <Users className="w-5 h-5" />
@@ -505,20 +338,20 @@ export const Hero = () => {
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-foreground">Select Category:</p>
                     <div className="space-y-2">
-                      {categories.map((cat) => (
-                        <div key={cat.category} className="space-y-2">
+                      {categories.map((subcategory) => (
+                        <div key={subcategory.name} className="space-y-2">
                           <button
-                            onClick={() => handleCategorySelect(cat.category)}
-                            className={`w-full py-3 px-4 rounded-lg transition-all flex items-center justify-between ${selectedCategory === cat.category
-                                ? 'bg-primary/10 border border-primary/30'
-                                : 'bg-muted hover:bg-muted/80'
+                            onClick={() => handleCategorySelect(subcategory.name)}
+                            className={`w-full py-3 px-4 rounded-lg transition-all flex items-center justify-between ${selectedCategory === subcategory.name
+                              ? 'bg-primary/10 border border-primary/30'
+                              : 'bg-muted hover:bg-muted/80'
                               }`}
                           >
                             <div className="flex items-center gap-3">
-                              <cat.icon className="w-5 h-5 text-primary" />
-                              <span className="text-sm font-medium text-foreground">{cat.category}</span>
+                              <Package className="w-5 h-5 text-primary" />
+                              <span className="text-sm font-medium text-foreground">{subcategory.name}</span>
                             </div>
-                            {expandedCategory === cat.category ? (
+                            {expandedCategory === subcategory.name ? (
                               <ChevronUp className="w-4 h-4 text-muted-foreground" />
                             ) : (
                               <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -526,23 +359,23 @@ export const Hero = () => {
                           </button>
 
                           {/* Garment Options (Expanded) */}
-                          {expandedCategory === cat.category && (
+                          {expandedCategory === subcategory.name && (
                             <motion.div
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
                               className="pl-8 pr-2 space-y-2"
                             >
-                              {cat.options.map((option) => (
+                              {subcategory.items.map((service) => (
                                 <button
-                                  key={option.value}
-                                  onClick={() => handleGarmentSelect(option.value)}
-                                  className={`w-full py-2 px-3 rounded text-left text-sm transition-all ${selectedGarment === option.value
-                                      ? 'bg-primary text-primary-foreground'
-                                      : 'hover:bg-muted'
+                                  key={service.id}
+                                  onClick={() => handleGarmentSelect(service.id)}
+                                  className={`w-full py-2 px-3 rounded text-left text-sm transition-all ${selectedGarment === service.id
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'hover:bg-muted'
                                     }`}
                                 >
-                                  {option.label}
+                                  {service.name}
                                 </button>
                               ))}
                             </motion.div>
