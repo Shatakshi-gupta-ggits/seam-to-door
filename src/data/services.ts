@@ -1,22 +1,22 @@
-// Male outfit images
-import malePant from "@/assets/services/male-pant.png";
-import maleJeans from "@/assets/services/male-jeans.png";
-import maleShirt from "@/assets/services/male-shirt.png";
-import maleTshirt from "@/assets/services/male-tshirt.png";
-import maleKurta from "@/assets/services/male-kurta.png";
-import maleSherwani from "@/assets/services/male-sherwani.png";
-import maleBlazer from "@/assets/services/male-blazer.png";
-import maleNehruJacket from "@/assets/services/male-nehru-jacket.png";
+// Male outfit images - realistic photos
+import malePant from "@/assets/services/male-pant.jpg";
+import maleJeans from "@/assets/services/male-jeans.jpg";
+import maleShirt from "@/assets/services/male-shirt.jpg";
+import maleTshirt from "@/assets/services/male-tshirt.jpg";
+import maleKurta from "@/assets/services/male-kurta.jpg";
+import maleSherwani from "@/assets/services/male-sherwani.jpg";
+import maleBlazer from "@/assets/services/male-blazer.jpg";
+import maleNehruJacket from "@/assets/services/male-nehru-jacket.jpg";
 
-// Female outfit images
-import femaleKurti from "@/assets/services/female-kurti.png";
-import femaleSalwar from "@/assets/services/female-salwar.png";
-import femalePalazzo from "@/assets/services/female-palazzo.png";
-import femaleSuit from "@/assets/services/female-suit.png";
-import femaleDress from "@/assets/services/female-dress.png";
-import femaleGown from "@/assets/services/female-gown.png";
-import femaleJumpsuit from "@/assets/services/female-jumpsuit.png";
-import femaleJacket from "@/assets/services/female-jacket.png";
+// Female outfit images - realistic photos
+import femaleKurti from "@/assets/services/female-kurti.jpg";
+import femaleSalwar from "@/assets/services/female-salwar.jpg";
+import femalePalazzo from "@/assets/services/female-palazzo.jpg";
+import femaleSuit from "@/assets/services/female-suit.jpg";
+import femaleDress from "@/assets/services/female-dress.jpg";
+import femaleGown from "@/assets/services/female-gown.jpg";
+import femaleJumpsuit from "@/assets/services/female-jumpsuit.jpg";
+import femaleJacket from "@/assets/services/female-jacket.jpg";
 
 export interface ServiceVariant {
   name: string;
