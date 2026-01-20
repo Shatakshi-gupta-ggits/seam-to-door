@@ -6,6 +6,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
+import { FloatingButtons } from "@/components/FloatingButtons";
 import SEO from "@/components/SEO";
 
 const servicesStructuredData = {
@@ -72,6 +73,7 @@ const Index = () => {
       <Testimonials />
       <FAQ />
       <Footer />
+      <FloatingButtons />
     </main>
   );
 };

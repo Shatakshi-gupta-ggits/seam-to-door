@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Check, Clock, Truck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { serviceCategories, ServiceItem, getMinPrice } from "@/data/services";
 import { useCart } from "@/contexts/CartContext";
 import { ServicesCarousel } from "@/components/ServicesCarousel";
@@ -33,8 +32,6 @@ export const Services = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [selectedCategory, setSelectedCategory] = useState<string>("male");
-  const navigate = useNavigate();
-  const { totalItems } = useCart();
 
   const currentCategory = serviceCategories.find(c => c.id === selectedCategory);
 
@@ -75,24 +72,6 @@ export const Services = () => {
         {/* Image Carousel */}
         <ServicesCarousel />
 
-        {/* Cart Summary Bar */}
-        {totalItems > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-auto z-50"
-          >
-            <Button
-              variant="gold"
-              size="lg"
-              className="w-full md:w-auto shadow-2xl"
-              onClick={() => navigate("/booking")}
-            >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              View Cart ({totalItems}) - Book Now
-            </Button>
-          </motion.div>
-        )}
 
         {/* Category Tabs */}
         <motion.div
