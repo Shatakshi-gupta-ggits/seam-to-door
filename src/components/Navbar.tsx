@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Scissors, User, LogOut, CalendarCheck, ChevronDown } from "lucide-react";
+import { Menu, X, User, LogOut, CalendarCheck, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDescopeAuth } from "@/hooks/useDescope";
+import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +73,13 @@ export const Navbar = () => {
           {/* Logo */}
           <a href="/home" className="flex items-center gap-2 group">
             <div className="relative">
-              <Scissors className="w-8 h-8 text-primary transition-transform duration-300 group-hover:rotate-45" />
+              <motion.img
+                src={logo}
+                alt="Mr Finisher Logo"
+                className="w-8 h-8 transition-transform duration-300 group-hover:rotate-45"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <span className="font-display font-bold text-xl text-foreground">

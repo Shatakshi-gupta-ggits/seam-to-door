@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Scissors, Mail, Phone, User, ArrowRight, Shield, Sparkles, Clock } from 'lucide-react';
+import { Mail, Phone, User, ArrowRight, Shield, Sparkles, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSession, useUser } from '@descope/react-sdk';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
+import logo from '@/assets/logo.png';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -118,7 +119,13 @@ const Auth = () => {
         >
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-6">
-              <Scissors className="w-12 h-12 text-primary" />
+              <motion.img
+                src={logo}
+                alt="Mr Finisher Logo"
+                className="w-12 h-12"
+                whileHover={{ scale: 1.1, rotate: 45 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              />
               <span className="font-display font-bold text-3xl">
                 Mr<span className="text-primary">Finisher</span>
               </span>
@@ -181,7 +188,13 @@ const Auth = () => {
           {/* Mobile Logo */}
           <div className="text-center mb-8 lg:hidden">
             <div className="inline-flex items-center gap-2">
-              <Scissors className="w-10 h-10 text-primary" />
+              <motion.img
+                src={logo}
+                alt="Mr Finisher Logo"
+                className="w-10 h-10"
+                whileHover={{ scale: 1.1, rotate: 45 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              />
               <span className="font-display font-bold text-2xl">
                 Mr<span className="text-primary">Finisher</span>
               </span>
