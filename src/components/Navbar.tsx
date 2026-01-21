@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, User, LogOut, CalendarCheck, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDescopeAuth } from "@/hooks/useDescope";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
@@ -22,35 +22,28 @@ const navLinks = [
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, user, logout } = useDescopeAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleSignOut = async () => {
     await logout();
-    localStorage.removeItem('descope_user');
     navigate('/');
   };
 
   const scrollToSection = (sectionId: string) => {
-    // Close mobile menu first
     setIsOpen(false);
     
-    // Check if we're on the home page
     const isOnHomePage = location.pathname === '/home' || location.pathname === '/';
     
-    // Use a timeout to allow menu close animation to complete
     setTimeout(() => {
       if (isOnHomePage) {
-        // Already on home page, scroll to element
         const element = document.getElementById(sectionId);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       } else {
-        // Navigate to home page first, then scroll
         navigate('/home');
-        // Wait for navigation to complete, then scroll
         setTimeout(() => {
           const targetElement = document.getElementById(sectionId);
           if (targetElement) {
@@ -58,7 +51,7 @@ export const Navbar = () => {
           }
         }, 200);
       }
-    }, 350); // Wait for menu animation to complete
+    }, 350);
   };
 
   return (
@@ -110,6 +103,7 @@ export const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="gap-2">
                       <User className="w-5 h-5" />
+                      <span className="max-w-24 truncate">{user?.email?.split('@')[0]}</span>
                       <ChevronDown className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -131,8 +125,8 @@ export const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button variant="gold" size="lg" onClick={() => navigate('/booking')}>
-               Book Now
+              <Button variant="gold" size="lg" onClick={() => navigate('/auth')}>
+                Login / Sign Up
               </Button>
             )}
           </div>
