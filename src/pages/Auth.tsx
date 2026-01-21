@@ -1,68 +1,33 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Phone, Loader2, Shield, Sparkles, Clock, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Loader2, Shield, Sparkles, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+import { Descope } from '@descope/react-sdk';
+import { useDescopeAuth } from "@/hooks/useDescopeAuth";
 import SEO from "@/components/SEO";
 import logo from "@/assets/logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isSessionLoading, signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-    phone: ''
-  });
+  const { isAuthenticated, isSessionLoading, descopeUser } = useDescopeAuth();
 
   useEffect(() => {
     if (isAuthenticated && !isSessionLoading) {
+      toast.success(`Welcome ${descopeUser?.name || 'back'}!`);
       navigate('/home');
     }
-  }, [isAuthenticated, isSessionLoading, navigate]);
+  }, [isAuthenticated, isSessionLoading, navigate, descopeUser]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleDescopeSuccess = (e: any) => {
+    console.log('Descope success:', e.detail.user);
+    toast.success(`Welcome ${e.detail.user.name || 'back'}!`);
+    navigate('/home');
+  };
 
-    try {
-      if (mode === 'signup') {
-        const { error } = await signUp(formData.email, formData.password, formData.fullName);
-        if (error) {
-          if (error.message.includes('already registered')) {
-            toast.error('This email is already registered. Please sign in.');
-          } else {
-            toast.error(error.message);
-          }
-        } else {
-          toast.success('Account created successfully!');
-          navigate('/home');
-        }
-      } else {
-        const { error } = await signIn(formData.email, formData.password);
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast.error('Invalid email or password');
-          } else {
-            toast.error(error.message);
-          }
-        } else {
-          toast.success('Welcome back!');
-          navigate('/home');
-        }
-      }
-    } catch (error: any) {
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDescopeError = (err: any) => {
+    console.error('Descope error:', err);
+    toast.error('Authentication failed. Please try again.');
   };
 
   const trustBadges = [
@@ -80,7 +45,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen auth-gradient auth-container flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <SEO
         title="Login - Mr Finisher"
         description="Sign in to Mr Finisher to book alterations, track orders, and manage your profile."
@@ -137,7 +102,7 @@ const Auth = () => {
               ))}
             </div>
 
-            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div className="bg-gradient-card backdrop-blur-sm rounded-2xl p-6 border border-border">
               <p className="text-sm text-muted-foreground mb-2">✨ What you get:</p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
@@ -181,123 +146,44 @@ const Auth = () => {
           </div>
 
           {/* Auth Card */}
-          <div className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100">
+          <div className="bg-gradient-card rounded-3xl p-8 shadow-lift border border-border">
             <div className="text-center mb-8">
               <h2 className="font-display text-2xl font-bold mb-2">
-                {mode === 'signin' ? 'Welcome Back' : 'Get Started'}
+                Welcome to Mr Finisher
               </h2>
               <p className="text-muted-foreground">
-                {mode === 'signin'
-                  ? 'Sign in to access your orders and saved cart'
-                  : 'Create your account to start booking'
-                }
+                Sign in with Google or create an account to get started
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="fullName"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="pl-10 h-12"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
+            {/* Descope Authentication Flow */}
+            <div className="space-y-4">
+              <Descope
+                flowId="sign-up-or-in"
+                theme="light"
+                onSuccess={handleDescopeSuccess}
+                onError={handleDescopeError}
+                style={{
+                  width: '100%',
+                  minHeight: '400px'
+                }}
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 h-12"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 h-12"
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
-
-              {mode === 'signup' && (
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone (Optional)</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="phone"
-                      placeholder="Enter your phone number"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="pl-10 h-12"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    {mode === 'signin' ? 'Sign In' : 'Create Account'}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            {/* Toggle Auth Mode */}
-            <div className="text-center mt-6">
-              <p className="text-sm text-muted-foreground">
-                {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-                  className="text-primary hover:text-primary/80 font-medium transition-colors"
-                >
-                  {mode === 'signin' ? 'Sign up' : 'Sign in'}
-                </button>
+            {/* Footer */}
+            <div className="mt-8 text-center">
+              <p className="text-xs text-muted-foreground">
+                By continuing, you agree to our{" "}
+                <a href="#" className="text-primary hover:underline">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="#" className="text-primary hover:underline">
+                  Privacy Policy
+                </a>
               </p>
             </div>
           </div>
-
-          <p className="text-center text-muted-foreground text-xs mt-6">
-            By continuing, you agree to our{' '}
-            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
-            {' '}and{' '}
-            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
-          </p>
         </motion.div>
       </div>
     </div>

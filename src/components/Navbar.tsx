@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, User, LogOut, CalendarCheck, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useDescopeAuth } from "@/hooks/useDescopeAuth";
 import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ const navLinks = [
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useDescopeAuth();
   const navigate = useNavigate();
   const location = useLocation();
 

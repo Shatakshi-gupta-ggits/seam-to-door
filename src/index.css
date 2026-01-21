@@ -119,20 +119,11 @@
   }
 
 
-  /* Custom Auth Styles */
-  .auth-gradient {
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
-  }
+  /* Custom Styles */
 
   /* Optimize font loading */
   .font-display {
     font-display: swap;
-  }
-
-  /* Reduce layout shift */
-  .auth-container {
-    min-height: 100vh;
-    contain: layout style paint;
   }
 }
 

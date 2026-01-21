@@ -19,6 +19,7 @@ import {
   Package,
   ChevronDown,
   ChevronUp,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,6 +119,7 @@ const Booking = () => {
   const [expandedSubcategories, setExpandedSubcategories] = useState<{[key: string]: boolean}>({});
 
   const [formData, setFormData] = useState({
+    customerName: "",
     houseNumber: "",
     streetArea: "",
     place: "",
@@ -292,7 +294,20 @@ const Booking = () => {
     
     let yPos = 85;
     
-    // Customer Details Section
+    // Customer Information Section
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(139, 92, 42);
+    doc.text("CUSTOMER INFORMATION", 20, yPos);
+    yPos += 8;
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${formData.customerName}`, 20, yPos);
+    yPos += 12;
+    
+    // Pickup Address Section
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(139, 92, 42);
@@ -431,6 +446,7 @@ const Booking = () => {
     formDataToSubmit.set("total_items_count", selectedServices.reduce((acc, curr) => acc + curr.quantity, 0).toString());
     formDataToSubmit.set("total_amount", `₹${totalAmount}`);
     formDataToSubmit.set("place", formData.place);
+    formDataToSubmit.set("customer_name", formData.customerName);
 
     await handleSubmit(formDataToSubmit);
     
@@ -720,6 +736,28 @@ const Booking = () => {
               </div>
             </div>
 
+            {/* Customer Information */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <User className="w-5 h-5 text-primary" />
+                <h3 className="font-display font-semibold text-lg">Customer Information</h3>
+              </div>
+
+              <div>
+                <Label htmlFor="customerName">Full Name *</Label>
+                <Input
+                  id="customerName"
+                  name="customerName"
+                  placeholder="Enter your full name"
+                  value={formData.customerName}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1.5"
+                />
+                <ValidationError prefix="Customer Name" field="customerName" errors={state.errors} />
+              </div>
+            </div>
+
             {/* Address */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
@@ -946,7 +984,7 @@ const Booking = () => {
               variant="gold"
               size="lg"
               className="w-full"
-              disabled={state.submitting || !date || !time || selectedServices.length === 0 || !formData.place}
+              disabled={state.submitting || !date || !time || selectedServices.length === 0 || !formData.place || !formData.customerName}
             >
               {state.submitting ? (
                 <>
