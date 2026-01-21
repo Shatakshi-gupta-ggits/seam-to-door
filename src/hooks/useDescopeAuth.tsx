@@ -24,73 +24,64 @@ export const DescopeAuthProvider = ({ children }: { children: ReactNode }) => {
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   
   // Descope hooks
-  const { isAuthenticated: isDescopeAuthenticated, isSessionLoading: isDescopeLoading } = useDescope();
+  const descope = useDescope();
+  const { isAuthenticated: isDescopeAuthenticated, isSessionLoading: isDescopeLoading } = descope;
   const { session: descopeSession, isSessionLoading: descopeSessionLoading } = useSession();
   const { user: descopeUser, isUserLoading } = useUser();
 
   // Sync Descope session with Supabase
   const syncWithSupabase = async (descopeSessionToken?: string) => {
     if (!descopeSessionToken || !descopeUser) {
-      // Clear Supabase session if no Descope session
-      await supabase.auth.signOut();
+      // Clear local state if no Descope session
       setUser(null);
       setSession(null);
       return;
     }
 
     try {
-      // Check if user exists in Supabase
-      const { data: existingUser, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', descopeUser.email)
-        .single();
+      // Create a mock Supabase user object for consistency with existing components
+      const mockUser: User = {
+        id: descopeUser.userId || descopeUser.loginId,
+        email: descopeUser.email,
+        user_metadata: {
+          full_name: descopeUser.name || '',
+          descope_user_id: descopeUser.userId,
+          provider: 'descope'
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        role: 'authenticated',
+        updated_at: new Date().toISOString(),
+        email_confirmed_at: new Date().toISOString(),
+        phone_confirmed_at: null,
+        confirmation_sent_at: null,
+        recovery_sent_at: null,
+        email_change_sent_at: null,
+        new_email: null,
+        invited_at: null,
+        action_link: null,
+        phone: null,
+        factors: null,
+        identities: []
+      };
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching user profile:', fetchError);
-        return;
-      }
+      // Create a mock session object
+      const mockSession: Session = {
+        access_token: descopeSessionToken,
+        refresh_token: descopeSessionToken,
+        expires_in: 3600,
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        token_type: 'bearer',
+        user: mockUser
+      };
 
-      // If user doesn't exist in Supabase, create them
-      if (!existingUser) {
-        // Create user in Supabase auth (this will also create the profile)
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: descopeUser.email,
-          password: Math.random().toString(36), // Random password since we're using Descope
-          options: {
-            data: {
-              full_name: descopeUser.name || '',
-              descope_user_id: descopeUser.userId,
-              provider: 'descope'
-            }
-          }
-        });
+      setUser(mockUser);
+      setSession(mockSession);
 
-        if (authError) {
-          console.error('Error creating Supabase user:', authError);
-          return;
-        }
+      // Optionally sync with your backend here
+      // await syncUserWithBackend(descopeUser);
 
-        setUser(authData.user);
-        setSession(authData.session);
-      } else {
-        // User exists, create a session
-        const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
-          email: descopeUser.email,
-          password: 'descope-managed' // This won't work, we need a different approach
-        });
-
-        // Alternative: Set user data directly (for display purposes)
-        // Note: This won't create a real Supabase session, but will sync user data
-        setUser({
-          id: existingUser.id,
-          email: descopeUser.email,
-          user_metadata: {
-            full_name: descopeUser.name,
-            descope_user_id: descopeUser.userId
-          }
-        } as User);
-      }
     } catch (error) {
       console.error('Error syncing with Supabase:', error);
     }
@@ -121,12 +112,9 @@ export const DescopeAuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       // Logout from Descope
-      const descope = useDescope();
       await descope.logout();
       
-      // Logout from Supabase
-      await supabase.auth.signOut();
-      
+      // Clear local state
       setUser(null);
       setSession(null);
     } catch (error) {
