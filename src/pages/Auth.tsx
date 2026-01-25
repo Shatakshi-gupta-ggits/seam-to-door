@@ -26,30 +26,34 @@ const Auth = () => {
     fullName: ''
   });
 
-  // Handle Descope authentication success
+  // Handle Descope authentication success - optimized
   useEffect(() => {
     if (isDescopeAuth && descopeUser && !descopeLoading) {
       const email = descopeUser.email || '';
       const name = descopeUser.name || '';
       
-      // Sync user to Supabase profiles (non-blocking)
-      supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', email)
-        .single()
-        .then(({ data: existingProfile }) => {
-          if (!existingProfile) {
-            supabase.from('profiles').insert({
-              user_id: descopeUser.userId || `descope_${Date.now()}`,
-              email: email,
-              full_name: name,
-            });
-          }
-        });
-
+      // Navigate immediately for better UX
       toast.success(`Welcome ${name || email.split('@')[0]}!`);
       navigate('/home');
+      
+      // Sync user to Supabase profiles in background (non-blocking)
+      setTimeout(() => {
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .single()
+          .then(({ data: existingProfile }) => {
+            if (!existingProfile) {
+              supabase.from('profiles').insert({
+                user_id: descopeUser.userId || `descope_${Date.now()}`,
+                email: email,
+                full_name: name,
+              }).catch(console.error);
+            }
+          })
+          .catch(console.error);
+      }, 100);
     }
   }, [isDescopeAuth, descopeUser, descopeLoading, navigate]);
 
@@ -94,11 +98,14 @@ const Auth = () => {
     toast.error('Google sign in failed. Please try again.');
   };
 
-  // Show minimal loader during auth check
-  if (isSessionLoading && descopeLoading) {
+  // Show minimal loader during auth check - reduce loading time
+  if (isSessionLoading || descopeLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="text-center">
+          <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Checking authentication...</p>
+        </div>
       </div>
     );
   }

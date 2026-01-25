@@ -4,7 +4,8 @@ const trustItems = [
   { icon: CheckCircle, title: "Standardised", subtitle: "Quality Process" },
   { icon: MapPin, title: "Doorstep Service", subtitle: "Pickup & Delivery" },
   { icon: Truck, title: "Shipping", subtitle: "Across Globe" },
-  { icon: Users, title: "2 Lac+", subtitle: "Happy Customers" },
+  { icon: Users, title: "Expert Tailors", subtitle: "Verified & Skilled" },
+
 ];
 
 // Duplicate items for seamless infinite scroll

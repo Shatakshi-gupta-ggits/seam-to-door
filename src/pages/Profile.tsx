@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User, Mail, Phone, MapPin, Save, Locate, Loader2, ShoppingCart } from 'lucide-react';
@@ -24,9 +24,9 @@ interface Profile {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isSessionLoading } = useAuth();
+  const { user, isAuthenticated, isSessionLoading, descopeUser, isDescopeAuth } = useAuth();
   const { items: cartItems, totalAmount, isLoading: cartLoading } = useCart();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed from true to false for faster initial render
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [profile, setProfile] = useState<Profile>({
@@ -40,68 +40,119 @@ const Profile = () => {
     avatar_url: ''
   });
 
+  // Memoize authentication check to prevent unnecessary re-renders
+  const authenticationStatus = useMemo(() => {
+    if (isSessionLoading) return 'loading';
+    if (!isAuthenticated && !isDescopeAuth) return 'unauthenticated';
+    return 'authenticated';
+  }, [isAuthenticated, isDescopeAuth, isSessionLoading]);
+
+  // Early redirect for unauthenticated users
   useEffect(() => {
-    if (!isSessionLoading && !isAuthenticated) {
+    if (authenticationStatus === 'unauthenticated') {
       navigate('/auth');
       return;
     }
+  }, [authenticationStatus, navigate]);
 
-    if (user) {
-      fetchProfile();
+  // Initialize profile data immediately when user is available
+  useEffect(() => {
+    if (authenticationStatus === 'authenticated' && (user || descopeUser)) {
+      initializeProfile();
     }
-  }, [user, isAuthenticated, isSessionLoading, navigate]);
+  }, [authenticationStatus, user, descopeUser]);
 
-  const fetchProfile = async () => {
-    if (!user) return;
-    
-    setLoading(true);
+  const initializeProfile = async () => {
+    // Use available user data immediately for faster UI
+    const currentUser = user || descopeUser;
+    const userEmail = currentUser?.email || '';
+    const userName = currentUser?.user_metadata?.full_name || currentUser?.name || '';
+
+    // Set initial profile data immediately
+    setProfile(prev => ({
+      ...prev,
+      email: userEmail,
+      full_name: userName
+    }));
+
+    // Then fetch additional data in background
+    if (user?.id) {
+      fetchProfileData(user.id);
+    } else if (descopeUser) {
+      // For Descope users, try to find existing profile
+      fetchDescopeProfile(userEmail);
+    }
+  };
+
+  const fetchProfileData = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        throw error;
+        console.error('Error fetching profile:', error);
+        return;
       }
 
       if (data) {
-        setProfile({
-          full_name: data.full_name || '',
-          email: data.email || user.email || '',
+        setProfile(prev => ({
+          ...prev,
+          full_name: data.full_name || prev.full_name,
           phone: data.phone || '',
           address: data.address || '',
           city: data.city || '',
           state: data.state || '',
           pincode: data.pincode || '',
           avatar_url: data.avatar_url || ''
-        });
-      } else {
-        // Create a profile if it doesn't exist
-        setProfile(prev => ({
-          ...prev,
-          email: user.email || '',
-          full_name: user.user_metadata?.full_name || ''
         }));
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
-      toast.error('Failed to load profile');
-    } finally {
-      setLoading(false);
+      // Don't show error toast for profile fetch failures
+    }
+  };
+
+  const fetchDescopeProfile = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (data) {
+        setProfile(prev => ({
+          ...prev,
+          full_name: data.full_name || prev.full_name,
+          phone: data.phone || '',
+          address: data.address || '',
+          city: data.city || '',
+          state: data.state || '',
+          pincode: data.pincode || '',
+          avatar_url: data.avatar_url || ''
+        }));
+      }
+    } catch (error: any) {
+      console.error('Error fetching Descope profile:', error);
+      // Don't show error toast for profile fetch failures
     }
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    const currentUser = user || descopeUser;
+    if (!currentUser) return;
     
     setSaving(true);
     try {
+      const userId = user?.id || `descope_${descopeUser?.userId || Date.now()}`;
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           full_name: profile.full_name,
           email: profile.email,
           phone: profile.phone,
@@ -133,24 +184,36 @@ const Profile = () => {
     }
 
     setLocating(true);
+    
+    // Use a timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setLocating(false);
+      toast.error('Location request timed out. Please try again.');
+    }, 15000);
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        clearTimeout(timeoutId);
         try {
           const { latitude, longitude } = position.coords;
           
+          // Use a faster, more reliable geocoding service
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+            { signal: AbortSignal.timeout(10000) } // 10 second timeout
           );
+          
+          if (!response.ok) throw new Error('Geocoding failed');
+          
           const data = await response.json();
 
-          if (data && data.address) {
-            const addr = data.address;
+          if (data) {
             setProfile(prev => ({
               ...prev,
-              address: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(', ') || data.display_name.split(',')[0],
-              city: addr.city || addr.town || addr.village || addr.county || '',
-              state: addr.state || '',
-              pincode: addr.postcode || ''
+              address: [data.locality, data.localityInfo?.administrative?.[3]?.name].filter(Boolean).join(', ') || data.locality || '',
+              city: data.city || data.locality || '',
+              state: data.principalSubdivision || '',
+              pincode: data.postcode || ''
             }));
             toast.success('Location fetched successfully!');
           }
@@ -162,20 +225,30 @@ const Profile = () => {
         }
       },
       (error) => {
+        clearTimeout(timeoutId);
         console.error('Geolocation error:', error);
         toast.error('Failed to get your location. Please enable location access.');
         setLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 } // Use cached location if available
     );
   };
 
-  if (loading || isSessionLoading) {
+  // Show loading only during authentication check, not profile data fetch
+  if (authenticationStatus === 'loading') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Loading your profile...</p>
+        </div>
       </div>
     );
+  }
+
+  // Don't render anything if user is being redirected
+  if (authenticationStatus === 'unauthenticated') {
+    return null;
   }
 
   return (

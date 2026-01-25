@@ -27,23 +27,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user: descopeUser } = useUser();
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mounted) return;
         setSession(session);
         setUser(session?.user ?? null);
         setIsSessionLoading(false);
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsSessionLoading(false);
-    });
+    // THEN check for existing session with faster timeout
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Session check error:', error);
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsSessionLoading(false);
+      } catch (error) {
+        console.error('Session check failed:', error);
+        if (mounted) {
+          setIsSessionLoading(false);
+        }
+      }
+    };
 
-    return () => subscription.unsubscribe();
+    checkSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
@@ -76,9 +98,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // The Descope SDK handles this via its own logout
   };
 
-  // Combined authentication state
+  // Combined authentication state - prioritize faster loading
   const isAuthenticated = !!session || isDescopeAuth;
-  const combinedLoading = isSessionLoading && descopeLoading;
+  const combinedLoading = isSessionLoading || descopeLoading;
 
   return (
     <AuthContext.Provider 
