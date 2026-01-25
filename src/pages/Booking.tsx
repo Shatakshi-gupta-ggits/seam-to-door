@@ -478,7 +478,6 @@ const Booking = () => {
     formDataToSubmit.set("services_details", servicesText);
     
     // Add custom descriptions separately for backend processing
-    const customServices = selectedServices.filter(s => s.id === 'custom-alteration');
     if (customServices.length > 0) {
       const customDescriptions = customServices
         .map(s => `Custom Alteration: ${s.customDescription || 'No description provided'}`)
