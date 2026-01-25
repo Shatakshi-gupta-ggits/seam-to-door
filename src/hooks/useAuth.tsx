@@ -9,6 +9,7 @@ interface AuthContextType {
   isSessionLoading: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   logout: () => Promise<void>;
 }
 
@@ -63,6 +64,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/home`,
+      }
+    });
+    return { error };
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
   };
@@ -76,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isSessionLoading, 
         signUp, 
         signIn, 
+        signInWithGoogle,
         logout 
       }}
     >
@@ -91,6 +103,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-// Keep backward compatibility alias
-export const useDescopeAuth = useAuth;
