@@ -1,10 +1,10 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, Sparkles, Clock, ChevronRight, Phone, MessageCircle, ChevronDown, ChevronUp, MapPin, Timer, Car, User, Users, Shirt, Package } from "lucide-react";
+import { Shield, Sparkles, Clock, ChevronRight, Phone, MessageCircle, ChevronDown, ChevronUp, MapPin, Timer, Car, User, Users, Package } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroTailor from "@/assets/hero-tailor.jpg";
-import { serviceCategories, ServiceItem, getMinPrice } from "@/data/services";
+import { serviceCategories, ServiceItem } from "@/data/services";
 
 const trustBadges = [
   { icon: Shield, label: "Verified Tailors" },
@@ -184,6 +184,7 @@ export const Hero = () => {
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 1.0 }}
+                className="text-muted-foreground text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-normal tracking-wide"
               >
                 — we come to you.
               </motion.span>
@@ -316,7 +317,7 @@ export const Hero = () => {
                       onClick={() => handleGenderSelect('male')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'male'
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
                         }`}
                     >
                       <User className="w-5 h-5" />
@@ -326,7 +327,7 @@ export const Hero = () => {
                       onClick={() => handleGenderSelect('female')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'female'
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
                         }`}
                     >
                       <Users className="w-5 h-5" />
@@ -343,8 +344,8 @@ export const Hero = () => {
                           <button
                             onClick={() => handleCategorySelect(subcategory.name)}
                             className={`w-full py-3 px-4 rounded-lg transition-all flex items-center justify-between ${selectedCategory === subcategory.name
-                              ? 'bg-primary/10 border border-primary/30'
-                              : 'bg-muted hover:bg-muted/80'
+                              ? 'bg-primary/10 border border-primary/30 text-foreground'
+                              : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
                               }`}
                           >
                             <div className="flex items-center gap-3">
@@ -372,7 +373,7 @@ export const Hero = () => {
                                   onClick={() => handleGarmentSelect(service.id)}
                                   className={`w-full py-2 px-3 rounded text-left text-sm transition-all ${selectedGarment === service.id
                                     ? 'bg-primary text-primary-foreground'
-                                    : 'hover:bg-muted'
+                                    : 'text-foreground hover:bg-muted hover:text-foreground'
                                     }`}
                                 >
                                   {service.name}
