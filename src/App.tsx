@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
+import { AuthProvider as DescopeAuthProvider } from '@descope/react-sdk';
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
@@ -20,23 +21,25 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Splash />} />
-                <Route path="/home" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/bookings" element={<Bookings />} />
-                <Route path="/booking" element={<Booking />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </CartProvider>
-        </AuthProvider>
+        <DescopeAuthProvider projectId="P37vaF398AxQbhS7fFW2mrNIKO0i">
+          <AuthProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Splash />} />
+                  <Route path="/home" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/bookings" element={<Bookings />} />
+                  <Route path="/booking" element={<Booking />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </CartProvider>
+          </AuthProvider>
+        </DescopeAuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </HelmetProvider>

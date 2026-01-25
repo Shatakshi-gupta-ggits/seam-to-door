@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useSession, useUser } from '@descope/react-sdk';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
@@ -7,9 +8,10 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isSessionLoading: boolean;
+  descopeUser: any;
+  isDescopeAuth: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
   logout: () => Promise<void>;
 }
 
@@ -19,6 +21,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
+  
+  // Descope hooks
+  const { isAuthenticated: isDescopeAuth, isSessionLoading: descopeLoading } = useSession();
+  const { user: descopeUser } = useUser();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -64,30 +70,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/home`,
-      }
-    });
-    return { error };
-  };
-
   const logout = async () => {
     await supabase.auth.signOut();
+    // For Descope, users need to clear their session separately
+    // The Descope SDK handles this via its own logout
   };
+
+  // Combined authentication state
+  const isAuthenticated = !!session || isDescopeAuth;
+  const combinedLoading = isSessionLoading && descopeLoading;
 
   return (
     <AuthContext.Provider 
       value={{ 
         user, 
         session, 
-        isAuthenticated: !!session, 
-        isSessionLoading, 
+        isAuthenticated, 
+        isSessionLoading: combinedLoading,
+        descopeUser,
+        isDescopeAuth,
         signUp, 
         signIn, 
-        signInWithGoogle,
         logout 
       }}
     >
