@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Loader2, Shield, Sparkles, Clock, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
 import { Descope, useSession, useUser } from '@descope/react-sdk';
@@ -29,38 +28,29 @@ const Auth = () => {
 
   // Handle Descope authentication success
   useEffect(() => {
-    const syncDescopeUser = async () => {
-      if (isDescopeAuth && descopeUser && !descopeLoading) {
-        // Create or update profile in Supabase for Descope users
-        const email = descopeUser.email || '';
-        const name = descopeUser.name || '';
-        
-        try {
-          // Check if profile exists
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('email', email)
-            .single();
-
+    if (isDescopeAuth && descopeUser && !descopeLoading) {
+      const email = descopeUser.email || '';
+      const name = descopeUser.name || '';
+      
+      // Sync user to Supabase profiles (non-blocking)
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .single()
+        .then(({ data: existingProfile }) => {
           if (!existingProfile) {
-            // Create profile for Descope user
-            await supabase.from('profiles').insert({
+            supabase.from('profiles').insert({
               user_id: descopeUser.userId || `descope_${Date.now()}`,
               email: email,
               full_name: name,
             });
           }
-        } catch (error) {
-          console.error('Error syncing Descope user:', error);
-        }
+        });
 
-        toast.success(`Welcome ${name || email.split('@')[0]}!`);
-        navigate('/home');
-      }
-    };
-
-    syncDescopeUser();
+      toast.success(`Welcome ${name || email.split('@')[0]}!`);
+      navigate('/home');
+    }
   }, [isDescopeAuth, descopeUser, descopeLoading, navigate]);
 
   // Handle Supabase authentication
@@ -96,22 +86,16 @@ const Auth = () => {
     }
   };
 
-  const handleDescopeSuccess = (e: any) => {
-    console.log('Descope success:', e.detail.user);
+  const handleDescopeSuccess = () => {
+    // Handled by useEffect above
   };
 
-  const handleDescopeError = (err: any) => {
-    console.error('Descope error:', err);
+  const handleDescopeError = () => {
     toast.error('Google sign in failed. Please try again.');
   };
 
-  const trustBadges = [
-    { icon: Shield, label: "Secure Login" },
-    { icon: Sparkles, label: "Quick Setup" },
-    { icon: Clock, label: "Instant Access" },
-  ];
-
-  if (isSessionLoading || descopeLoading) {
+  // Show minimal loader during auth check
+  if (isSessionLoading && descopeLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -128,22 +112,16 @@ const Auth = () => {
         canonicalUrl="/auth"
       />
 
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
-        {/* Left Side - Branding */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="hidden lg:block"
-        >
+      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        {/* Left Side - Branding (Hidden on mobile for faster LCP) */}
+        <div className="hidden lg:block">
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-6">
-              <motion.img
+              <img
                 src={logo}
                 alt="Mr Finisher Logo"
                 className="w-12 h-12"
-                whileHover={{ scale: 1.1, rotate: 45 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                loading="eager"
               />
               <span className="font-display font-bold text-3xl">
                 Mr<span className="text-primary">Finisher</span>
@@ -163,21 +141,21 @@ const Auth = () => {
 
             {/* Trust Badges */}
             <div className="flex flex-wrap gap-6 mb-8">
-              {trustBadges.map((badge, index) => (
-                <motion.div
-                  key={badge.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="flex items-center gap-2 text-muted-foreground"
-                >
-                  <badge.icon className="w-5 h-5 text-primary" />
-                  <span className="text-sm">{badge.label}</span>
-                </motion.div>
-              ))}
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Shield className="w-5 h-5 text-primary" />
+                <span className="text-sm">Secure Login</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="text-sm">Quick Setup</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="w-5 h-5 text-primary" />
+                <span className="text-sm">Instant Access</span>
+              </div>
             </div>
 
-            <div className="bg-gradient-card backdrop-blur-sm rounded-2xl p-6 border border-border">
+            <div className="bg-card rounded-2xl p-6 border border-border">
               <p className="text-sm text-muted-foreground mb-2">✨ What you get:</p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
@@ -195,24 +173,18 @@ const Auth = () => {
               </ul>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right Side - Auth Form */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full max-w-md mx-auto"
-        >
+        <div className="w-full max-w-md mx-auto">
           {/* Mobile Logo */}
           <div className="text-center mb-8 lg:hidden">
             <div className="inline-flex items-center gap-2">
-              <motion.img
+              <img
                 src={logo}
                 alt="Mr Finisher Logo"
                 className="w-10 h-10"
-                whileHover={{ scale: 1.1, rotate: 45 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                loading="eager"
               />
               <span className="font-display font-bold text-2xl">
                 Mr<span className="text-primary">Finisher</span>
@@ -221,7 +193,7 @@ const Auth = () => {
           </div>
 
           {/* Auth Card */}
-          <div className="bg-gradient-card rounded-3xl p-8 shadow-lift border border-border">
+          <div className="bg-card rounded-3xl p-6 sm:p-8 shadow-card border border-border">
             <div className="text-center mb-6">
               <h2 className="font-display text-2xl font-bold mb-2">
                 Welcome to Mr Finisher
@@ -234,10 +206,10 @@ const Auth = () => {
             {/* Descope Google Sign In */}
             {!showEmailForm && (
               <div className="space-y-4">
-                <div className="descope-container">
+                <div className="descope-container [&_*]:!font-body">
                   <Descope
                     flowId="sign-up-or-in"
-                    theme="light"
+                    theme="dark"
                     onSuccess={handleDescopeSuccess}
                     onError={handleDescopeError}
                   />
@@ -338,8 +310,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    variant="gold"
-                    className="w-full"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={loading}
                   >
                     {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
@@ -377,7 +348,7 @@ const Auth = () => {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
