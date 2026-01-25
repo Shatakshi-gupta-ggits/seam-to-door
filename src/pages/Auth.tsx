@@ -1,33 +1,56 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Shield, Sparkles, Clock } from "lucide-react";
+import { Loader2, Shield, Sparkles, Clock, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
-import { Descope } from '@descope/react-sdk';
-import { useDescopeAuth } from "@/hooks/useDescopeAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import SEO from "@/components/SEO";
 import logo from "@/assets/logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isSessionLoading, descopeUser } = useDescopeAuth();
+  const { isAuthenticated, isSessionLoading, signIn, signUp, user } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: ''
+  });
 
   useEffect(() => {
     if (isAuthenticated && !isSessionLoading) {
-      toast.success(`Welcome ${descopeUser?.name || 'back'}!`);
+      toast.success(`Welcome ${user?.email?.split('@')[0] || 'back'}!`);
       navigate('/home');
     }
-  }, [isAuthenticated, isSessionLoading, navigate, descopeUser]);
+  }, [isAuthenticated, isSessionLoading, navigate, user]);
 
-  const handleDescopeSuccess = (e: any) => {
-    console.log('Descope success:', e.detail.user);
-    toast.success(`Welcome ${e.detail.user.name || 'back'}!`);
-    navigate('/home');
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const handleDescopeError = (err: any) => {
-    console.error('Descope error:', err);
-    toast.error('Authentication failed. Please try again.');
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(formData.email, formData.password, formData.fullName);
+        if (error) {
+          toast.error(error.message || 'Sign up failed');
+        } else {
+          toast.success('Account created! Please check your email to verify.');
+        }
+      } else {
+        const { error } = await signIn(formData.email, formData.password);
+        if (error) {
+          toast.error(error.message || 'Sign in failed');
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const trustBadges = [
@@ -149,25 +172,94 @@ const Auth = () => {
           <div className="bg-gradient-card rounded-3xl p-8 shadow-lift border border-border">
             <div className="text-center mb-8">
               <h2 className="font-display text-2xl font-bold mb-2">
-                Welcome to Mr Finisher
+                {isSignUp ? 'Create Account' : 'Welcome Back'}
               </h2>
               <p className="text-muted-foreground">
-                Sign in with Google or create an account to get started
+                {isSignUp 
+                  ? 'Sign up to get started with Mr Finisher'
+                  : 'Sign in to your account to continue'
+                }
               </p>
             </div>
 
-            {/* Descope Authentication Flow */}
-            <div className="space-y-4">
-              <Descope
-                flowId="sign-up-or-in"
-                theme="light"
-                onSuccess={handleDescopeSuccess}
-                onError={handleDescopeError}
-                style={{
-                  width: '100%',
-                  minHeight: '400px'
-                }}
-              />
+            {/* Auth Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      className="pl-10"
+                      required={isSignUp}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="pl-10"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="gold"
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
+                {isSignUp ? 'Create Account' : 'Sign In'}
+              </Button>
+            </form>
+
+            {/* Toggle Sign Up/Sign In */}
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {isSignUp 
+                  ? 'Already have an account? Sign in'
+                  : "Don't have an account? Sign up"
+                }
+              </button>
             </div>
 
             {/* Footer */}
