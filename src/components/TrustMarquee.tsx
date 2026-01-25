@@ -2,7 +2,7 @@ import { CheckCircle, MapPin, Truck, Users } from "lucide-react";
 
 const trustItems = [
   { icon: CheckCircle, title: "Standardised", subtitle: "Quality Process" },
-  { icon: MapPin, title: "Order Tracking", subtitle: "For all orders*" },
+  { icon: MapPin, title: "Doorstep Service", subtitle: "Pickup & Delivery" },
   { icon: Truck, title: "Shipping", subtitle: "Across Globe" },
   { icon: Users, title: "2 Lac+", subtitle: "Happy Customers" },
 ];
