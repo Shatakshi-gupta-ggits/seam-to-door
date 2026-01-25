@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { useDescopeAuth } from '@/hooks/useDescopeAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/contexts/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,7 +24,7 @@ interface Profile {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isSessionLoading } = useDescopeAuth();
+  const { user, isAuthenticated, isSessionLoading } = useAuth();
   const { items: cartItems, totalAmount, isLoading: cartLoading } = useCart();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
