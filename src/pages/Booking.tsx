@@ -96,6 +96,7 @@ interface SelectedService {
   price: number;
   quantity: number;
   selectedVariant?: ServiceVariant;
+  customDescription?: string; // For custom alteration services
 }
 
 const Booking = () => {
@@ -205,7 +206,11 @@ const Booking = () => {
   }, [preSelectedService, preSelectedServices]);
 
   const totalAmount = useMemo(
-    () => selectedServices.reduce((sum, s) => sum + s.price * s.quantity, 0),
+    () => selectedServices.reduce((sum, s) => {
+      // Exclude custom alteration services from total (price will be determined by call)
+      if (s.id === 'custom-alteration') return sum;
+      return sum + s.price * s.quantity;
+    }, 0),
     [selectedServices],
   );
 
@@ -225,9 +230,19 @@ const Booking = () => {
         name: service.name, 
         price, 
         quantity: 1,
-        selectedVariant: variant 
+        selectedVariant: variant,
+        customDescription: service.id === 'custom-alteration' ? '' : undefined
       }];
     });
+  };
+
+  const updateCustomDescription = (serviceId: string, description: string) => {
+    setSelectedServices((prev) =>
+      prev.map((s) => {
+        if (s.id !== serviceId) return s;
+        return { ...s, customDescription: description };
+      })
+    );
   };
 
   const toggleCategoryExpansion = (categoryId: string) => {
@@ -427,6 +442,15 @@ const Booking = () => {
   const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Validate custom alteration descriptions
+    const customServices = selectedServices.filter(s => s.id === 'custom-alteration');
+    const missingDescriptions = customServices.filter(s => !s.customDescription?.trim());
+    
+    if (missingDescriptions.length > 0) {
+      alert('Please provide description for custom alteration services.');
+      return;
+    }
+
     const formElement = e.currentTarget;
     const formDataToSubmit = new FormData(formElement);
 
@@ -439,10 +463,28 @@ const Booking = () => {
         const serviceName = s.selectedVariant 
           ? `${s.name} (${s.selectedVariant.name})`
           : s.name;
-        return `${serviceName} (Qty: ${s.quantity}) - ₹${s.price * s.quantity}`;
+        
+        let serviceInfo = '';
+        if (s.id === 'custom-alteration') {
+          serviceInfo = `${serviceName} - Price on call\nCustomer Requirements: ${s.customDescription || 'Not specified'}`;
+        } else {
+          serviceInfo = `${serviceName} (Qty: ${s.quantity}) - ₹${s.price * s.quantity}`;
+        }
+        
+        return serviceInfo;
       })
-      .join("\n");
+      .join("\n\n");
+    
     formDataToSubmit.set("services_details", servicesText);
+    
+    // Add custom descriptions separately for backend processing
+    const customServices = selectedServices.filter(s => s.id === 'custom-alteration');
+    if (customServices.length > 0) {
+      const customDescriptions = customServices
+        .map(s => `Custom Alteration: ${s.customDescription || 'No description provided'}`)
+        .join('\n');
+      formDataToSubmit.set("custom_alteration_details", customDescriptions);
+    }
     formDataToSubmit.set("total_items_count", selectedServices.reduce((acc, curr) => acc + curr.quantity, 0).toString());
     formDataToSubmit.set("total_amount", `₹${totalAmount}`);
     formDataToSubmit.set("place", formData.place);
@@ -554,32 +596,36 @@ const Booking = () => {
                                 {service.selectedVariant.name}
                               </p>
                             )}
-                            <p className="text-sm text-primary font-medium">₹{service.price} each</p>
+                            <p className="text-sm text-primary font-medium">
+                              {service.id === 'custom-alteration' ? 'Price on call' : `₹${service.price} each`}
+                            </p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => updateQuantity(service.id, -1)}
-                            >
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <span className="w-8 text-center font-semibold text-sm">{service.quantity}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => updateQuantity(service.id, 1)}
-                            >
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          </div>
+                          {service.id !== 'custom-alteration' && (
+                            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => updateQuantity(service.id, -1)}
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                              <span className="w-8 text-center font-semibold text-sm">{service.quantity}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => updateQuantity(service.id, 1)}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
                           <Button
                             type="button"
                             variant="ghost"
@@ -591,9 +637,32 @@ const Booking = () => {
                           </Button>
                         </div>
                       </div>
+                      
+                      {/* Custom description field for custom alteration service */}
+                      {service.id === 'custom-alteration' && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <Label htmlFor={`custom-desc-${service.id}`} className="text-xs font-medium text-muted-foreground">
+                            Describe your alteration requirements *
+                          </Label>
+                          <Textarea
+                            id={`custom-desc-${service.id}`}
+                            placeholder="e.g., Uniform fitting, special garment alterations, etc. Please provide detailed requirements..."
+                            value={service.customDescription || ''}
+                            onChange={(e) => updateCustomDescription(service.id, e.target.value)}
+                            className="mt-1 min-h-[80px] text-sm"
+                            required
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Our team will call you to discuss pricing and timeline based on your requirements.
+                          </p>
+                        </div>
+                      )}
+                      
                       <div className="mt-2 pt-2 border-t border-border flex justify-between items-center">
                         <span className="text-xs text-muted-foreground">Subtotal</span>
-                        <span className="font-bold text-primary">₹{service.price * service.quantity}</span>
+                        <span className="font-bold text-primary">
+                          {service.id === 'custom-alteration' ? 'Price on call' : `₹${service.price * service.quantity}`}
+                        </span>
                       </div>
                     </motion.div>
                   ))}
@@ -604,6 +673,11 @@ const Booking = () => {
                     <span className="font-semibold">Total Amount:</span>
                     <span className="text-2xl font-bold text-primary">₹{totalAmount}</span>
                   </div>
+                  {selectedServices.some(s => s.id === 'custom-alteration') && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      * Custom alteration pricing will be discussed over call
+                    </p>
+                  )}
                 </div>
               </div>
             )}

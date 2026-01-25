@@ -408,7 +408,32 @@ const femaleServices: ServiceCategory = {
   ],
 };
 
-export const serviceCategories: ServiceCategory[] = [maleServices, femaleServices];
+// Other/Custom Services
+const otherServices: ServiceCategory = {
+  id: "other",
+  name: "Other Services",
+  icon: "🔧",
+  subcategories: [
+    {
+      name: "Custom Alterations",
+      icon: "✂️",
+      items: [
+        {
+          id: "custom-alteration",
+          name: "Custom Alteration Service",
+          category: "other",
+          subcategory: "custom",
+          price: 0, // Price will be determined by backend team
+          description: "Describe your specific alteration needs (e.g., uniform fitting, special garment alterations, etc.). Our team will call you to discuss pricing and requirements.",
+          time: "Varies based on requirement",
+          image: maleShirt, // Using a generic image
+        },
+      ],
+    },
+  ],
+};
+
+export const serviceCategories: ServiceCategory[] = [maleServices, femaleServices, otherServices];
 
 // Get all services as flat array
 export const getAllServices = (): ServiceItem[] => {
