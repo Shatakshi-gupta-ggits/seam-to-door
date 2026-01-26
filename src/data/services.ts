@@ -411,7 +411,7 @@ const femaleServices: ServiceCategory = {
 // Other/Custom Services
 const otherServices: ServiceCategory = {
   id: "other",
-  name: "Other Services",
+  name: "Custom Services",
   icon: "🔧",
   subcategories: [
     {
