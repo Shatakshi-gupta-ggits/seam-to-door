@@ -21,7 +21,8 @@ export const FloatingButtons = () => {
 
   const handleWhatsAppClick = () => {
     const encodedMessage = encodeURIComponent(WHATSAPP_MESSAGE);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, "_blank");
+    // Using direct URL that works in all browsers/iframes
+    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
   };
 
   return (

@@ -3,10 +3,11 @@ import malePant from "@/assets/services/male-pant.jpg";
 import maleJeans from "@/assets/services/male-jeans.jpg";
 import maleShirt from "@/assets/services/male-shirt.jpg";
 import maleTshirt from "@/assets/services/male-tshirt.jpg";
-import maleKurta from "@/assets/services/male-kurta.jpg";
+import maleKurta from "@/assets/services/male-kurta-new.jpg";
 import maleSherwani from "@/assets/services/male-sherwani.jpg";
 import maleBlazer from "@/assets/services/male-blazer.jpg";
 import maleNehruJacket from "@/assets/services/male-nehru-jacket.jpg";
+import malePyjama from "@/assets/services/male-pyjama.jpg";
 
 // Female outfit images - realistic photos
 import femaleKurti from "@/assets/services/female-kurti.jpg";
@@ -111,7 +112,7 @@ const maleServices: ServiceCategory = {
           price: 141,
           description: "Length or waist adjustment",
           time: "24 hours",
-          image: malePant,
+          image: malePyjama,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 141 },
