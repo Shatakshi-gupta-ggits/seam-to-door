@@ -37,23 +37,27 @@ const Auth = () => {
       navigate('/home');
       
       // Sync user to Supabase profiles in background (non-blocking)
-      setTimeout(() => {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', email)
-          .single()
-          .then(({ data: existingProfile }) => {
-            if (!existingProfile) {
-              supabase.from('profiles').insert({
-                user_id: descopeUser.userId || `descope_${Date.now()}`,
-                email: email,
-                full_name: name,
-              }).catch(console.error);
-            }
-          })
-          .catch(console.error);
-      }, 100);
+      const syncProfile = async () => {
+        try {
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('email', email)
+            .single();
+          
+          if (!existingProfile) {
+            await supabase.from('profiles').insert({
+              user_id: descopeUser.userId || `descope_${Date.now()}`,
+              email: email,
+              full_name: name,
+            });
+          }
+        } catch (error) {
+          console.error('Profile sync error:', error);
+        }
+      };
+      
+      setTimeout(syncProfile, 100);
     }
   }, [isDescopeAuth, descopeUser, descopeLoading, navigate]);
 
