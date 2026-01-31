@@ -4,7 +4,7 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { CartDrawer } from "./CartDrawer";
 
-const WHATSAPP_NUMBER = "919876543210"; // Replace with actual number
+const WHATSAPP_NUMBER = "919407826370";
 const WHATSAPP_MESSAGE = "Hi! I'm interested in your alteration services. Can you help me?";
 
 // WhatsApp SVG Icon for authentic look
