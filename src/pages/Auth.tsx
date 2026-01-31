@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Shield, Sparkles, Clock, Mail, Lock, User } from "lucide-react";
+import { Loader2, Shield, Sparkles, Clock, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Descope, useSession, useUser } from '@descope/react-sdk';
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import SEO from "@/components/SEO";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
+
+type AuthMode = 'main' | 'email' | 'phone';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -17,26 +20,33 @@ const Auth = () => {
   const { isAuthenticated: isDescopeAuth, isSessionLoading: descopeLoading } = useSession();
   const { user: descopeUser } = useUser();
   
+  const [authMode, setAuthMode] = useState<AuthMode>('main');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showEmailForm, setShowEmailForm] = useState(false);
+  
+  // Email form state
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: ''
   });
 
-  // Handle Descope authentication success - optimized
+  // Phone OTP state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  // Handle Descope authentication success
   useEffect(() => {
     if (isDescopeAuth && descopeUser && !descopeLoading) {
       const email = descopeUser.email || '';
       const name = descopeUser.name || '';
       
-      // Navigate immediately for better UX
       toast.success(`Welcome ${name || email.split('@')[0]}!`);
       navigate('/home');
       
-      // Sync user to Supabase profiles in background (non-blocking)
+      // Sync user to Supabase profiles in background
       const syncProfile = async () => {
         try {
           const { data: existingProfile } = await supabase
@@ -69,7 +79,7 @@ const Auth = () => {
     }
   }, [isAuthenticated, isSessionLoading, navigate, user]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -94,15 +104,141 @@ const Auth = () => {
     }
   };
 
+  // Phone OTP functions
+  const handleSendOTP = async () => {
+    if (!phoneNumber || phoneNumber.length < 10) {
+      toast.error('Please enter a valid phone number');
+      return;
+    }
+
+    setOtpLoading(true);
+    
+    try {
+      // Format phone number with country code
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
+      
+      // Generate a random 6-digit OTP
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store OTP in Supabase for verification (expires in 5 minutes)
+      const { error: insertError } = await supabase
+        .from('phone_otps')
+        .insert({
+          phone: formattedPhone,
+          otp_code: generatedOtp,
+          expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        });
+
+      if (insertError) throw insertError;
+
+      // For demo purposes, show OTP in toast (in production, integrate with SMS provider)
+      toast.success(`OTP sent! (Demo: ${generatedOtp})`);
+      setOtpSent(true);
+      
+    } catch (error: any) {
+      console.error('OTP send error:', error);
+      toast.error('Failed to send OTP. Please try again.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setOtpLoading(true);
+    
+    try {
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
+      
+      // Verify OTP from database
+      const { data: otpRecord, error: fetchError } = await supabase
+        .from('phone_otps')
+        .select('*')
+        .eq('phone', formattedPhone)
+        .eq('otp_code', otpCode)
+        .eq('verified', false)
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (fetchError || !otpRecord) {
+        toast.error('Invalid or expired OTP. Please try again.');
+        return;
+      }
+
+      // Mark OTP as verified
+      await supabase
+        .from('phone_otps')
+        .update({ verified: true })
+        .eq('id', otpRecord.id);
+
+      // Check if profile exists with this phone
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('phone', formattedPhone)
+        .single();
+
+      if (existingProfile) {
+        // Profile exists, update it
+        await supabase
+          .from('profiles')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', existingProfile.id);
+        
+        toast.success('Welcome back!');
+      } else {
+        // Create new profile for phone user
+        await supabase.from('profiles').insert({
+          user_id: `phone_${formattedPhone.replace(/\+/g, '')}`,
+          phone: formattedPhone,
+          full_name: '',
+        });
+        
+        toast.success('Account created successfully!');
+      }
+
+      // Store auth state in localStorage for phone users
+      localStorage.setItem('phone_auth', JSON.stringify({
+        phone: formattedPhone,
+        authenticated: true,
+        timestamp: Date.now()
+      }));
+
+      navigate('/home');
+      
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleDescopeSuccess = () => {
-    // Handled by useEffect above
+    // Handled by useEffect
   };
 
   const handleDescopeError = () => {
     toast.error('Google sign in failed. Please try again.');
   };
 
-  // Show minimal loader during auth check - reduce loading time
+  const goBack = () => {
+    if (otpSent) {
+      setOtpSent(false);
+      setOtpCode('');
+    } else {
+      setAuthMode('main');
+      setIsSignUp(false);
+    }
+  };
+
+  // Show loader during auth check
   if (isSessionLoading || descopeLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -124,16 +260,11 @@ const Auth = () => {
       />
 
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-        {/* Left Side - Branding (Hidden on mobile for faster LCP) */}
+        {/* Left Side - Branding */}
         <div className="hidden lg:block">
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-6">
-              <img
-                src={logo}
-                alt="Mr Finisher Logo"
-                className="w-12 h-12"
-                loading="eager"
-              />
+              <img src={logo} alt="Mr Finisher Logo" className="w-12 h-12" loading="eager" />
               <span className="font-display font-bold text-3xl">
                 Mr<span className="text-primary">Finisher</span>
               </span>
@@ -150,7 +281,6 @@ const Auth = () => {
               Join thousands of satisfied customers in Jabalpur who trust us for their alteration needs.
             </p>
 
-            {/* Trust Badges */}
             <div className="flex flex-wrap gap-6 mb-8">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Shield className="w-5 h-5 text-primary" />
@@ -191,12 +321,7 @@ const Auth = () => {
           {/* Mobile Logo */}
           <div className="text-center mb-8 lg:hidden">
             <div className="inline-flex items-center gap-2">
-              <img
-                src={logo}
-                alt="Mr Finisher Logo"
-                className="w-10 h-10"
-                loading="eager"
-              />
+              <img src={logo} alt="Mr Finisher Logo" className="w-10 h-10" loading="eager" />
               <span className="font-display font-bold text-2xl">
                 Mr<span className="text-primary">Finisher</span>
               </span>
@@ -205,69 +330,184 @@ const Auth = () => {
 
           {/* Auth Card */}
           <div className="bg-card rounded-3xl p-6 sm:p-8 shadow-card border border-border">
-            <div className="text-center mb-6">
-              <h2 className="font-display text-2xl font-bold mb-2">
-                Welcome to Mr Finisher
-              </h2>
-              <p className="text-muted-foreground">
-                Sign in with Google to get started
-              </p>
-            </div>
-
-            {/* Descope Google Sign In */}
-            {!showEmailForm && (
-              <div className="space-y-4">
-                <div className="descope-container [&_*]:!font-body">
-                  <Descope
-                    flowId="sign-up-or-in"
-                    theme="dark"
-                    onSuccess={handleDescopeSuccess}
-                    onError={handleDescopeError}
-                  />
+            
+            {/* Main Auth Options */}
+            {authMode === 'main' && (
+              <>
+                <div className="text-center mb-6">
+                  <h2 className="font-display text-2xl font-bold mb-2">Welcome to Mr Finisher</h2>
+                  <p className="text-muted-foreground">Choose how you'd like to continue</p>
                 </div>
 
-                {/* Divider */}
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border"></div>
+                <div className="space-y-4">
+                  {/* Descope Google Sign In */}
+                  <div className="descope-container [&_*]:!font-body">
+                    <Descope
+                      flowId="sign-up-or-in"
+                      theme="dark"
+                      onSuccess={handleDescopeSuccess}
+                      onError={handleDescopeError}
+                    />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or</span>
-                  </div>
-                </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setShowEmailForm(true)}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Continue with Email
-                </Button>
-              </div>
+                  {/* Divider */}
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                    </div>
+                  </div>
+
+                  {/* Phone OTP Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-12"
+                    onClick={() => setAuthMode('phone')}
+                  >
+                    <Phone className="w-5 h-5 mr-2" />
+                    Phone Number (OTP)
+                  </Button>
+
+                  {/* Email Button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setAuthMode('email')}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Continue with Email
+                  </Button>
+                </div>
+              </>
             )}
 
-            {/* Email Form */}
-            {showEmailForm && (
+            {/* Phone OTP Flow */}
+            {authMode === 'phone' && (
               <>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="mb-4"
-                  onClick={() => setShowEmailForm(false)}
+                  onClick={goBack}
                 >
-                  ← Back to Google Sign In
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
                 </Button>
 
                 <div className="text-center mb-6">
-                  <h3 className="font-display text-lg font-semibold">
+                  <Phone className="w-12 h-12 text-primary mx-auto mb-3" />
+                  <h3 className="font-display text-xl font-semibold">
+                    {otpSent ? 'Enter OTP' : 'Sign in with Phone'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {otpSent 
+                      ? `We've sent a code to +91 ${phoneNumber}`
+                      : 'We will send you a one-time password'
+                    }
+                  </p>
+                </div>
+
+                {!otpSent ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                          +91
+                        </span>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="9876543210"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          className="pl-12"
+                          maxLength={10}
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleSendOTP}
+                      disabled={otpLoading || phoneNumber.length < 10}
+                    >
+                      {otpLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                      Send OTP
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={setOtpCode}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleVerifyOTP}
+                      disabled={otpLoading || otpCode.length !== 6}
+                    >
+                      {otpLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                      Verify & Continue
+                    </Button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpSent(false);
+                        setOtpCode('');
+                      }}
+                      className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Didn't receive code? Resend OTP
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Email Form */}
+            {authMode === 'email' && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mb-4"
+                  onClick={goBack}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+
+                <div className="text-center mb-6">
+                  <Mail className="w-12 h-12 text-primary mx-auto mb-3" />
+                  <h3 className="font-display text-xl font-semibold">
                     {isSignUp ? 'Create Account' : 'Sign In with Email'}
                   </h3>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleEmailSubmit} className="space-y-4">
                   {isSignUp && (
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Full Name</Label>
@@ -321,7 +561,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="w-full"
                     disabled={loading}
                   >
                     {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
@@ -329,7 +569,6 @@ const Auth = () => {
                   </Button>
                 </form>
 
-                {/* Toggle Sign Up/Sign In */}
                 <div className="mt-4 text-center">
                   <button
                     type="button"
@@ -349,13 +588,9 @@ const Auth = () => {
             <div className="mt-8 text-center">
               <p className="text-xs text-muted-foreground">
                 By continuing, you agree to our{" "}
-                <a href="#" className="text-primary hover:underline">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-primary hover:underline">
-                  Privacy Policy
-                </a>
+                <a href="#" className="text-primary hover:underline">Terms of Service</a>
+                {" "}and{" "}
+                <a href="#" className="text-primary hover:underline">Privacy Policy</a>
               </p>
             </div>
           </div>
