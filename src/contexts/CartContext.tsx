@@ -2,7 +2,17 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { ServiceItem, getMinPrice } from "@/data/services";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+
+// Try to use auth context, but don't crash if unavailable
+const useAuthSafe = () => {
+  try {
+    // Dynamic import to avoid circular dependency issues
+    const { useAuth } = require("@/hooks/useAuth");
+    return useAuth();
+  } catch {
+    return { user: null, isAuthenticated: false };
+  }
+};
 
 export interface CartItem {
   id: string;
@@ -38,7 +48,29 @@ export const useCart = () => {
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const [authState, setAuthState] = useState<{ user: any; isAuthenticated: boolean }>({ user: null, isAuthenticated: false });
+
+  // Listen to auth state changes directly from Supabase to avoid circular dependency
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setAuthState({
+        user: session?.user ?? null,
+        isAuthenticated: !!session?.user
+      });
+    });
+
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthState({
+        user: session?.user ?? null,
+        isAuthenticated: !!session?.user
+      });
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const { user, isAuthenticated } = authState;
 
   // Load cart from localStorage or Supabase on init
   useEffect(() => {
