@@ -8,6 +8,9 @@ import maleSherwani from "@/assets/services/male-sherwani.jpg";
 import maleBlazer from "@/assets/services/male-blazer.jpg";
 import maleNehruJacket from "@/assets/services/male-nehru-jacket.jpg";
 import malePyjama from "@/assets/services/male-pyjama.jpg";
+import maleChinos from "@/assets/services/male-chinos.jpg";
+import maleTrousers from "@/assets/services/male-trousers.jpg";
+import maleShorts from "@/assets/services/male-shorts.jpg";
 
 // Female outfit images - realistic photos
 import femaleKurti from "@/assets/services/female-kurti.jpg";
@@ -18,6 +21,12 @@ import femaleDress from "@/assets/services/female-dress.jpg";
 import femaleGown from "@/assets/services/female-gown.jpg";
 import femaleJumpsuit from "@/assets/services/female-jumpsuit.jpg";
 import femaleJacket from "@/assets/services/female-jacket.jpg";
+import femaleTop from "@/assets/services/female-top.jpg";
+import femaleShirt from "@/assets/services/female-shirt.jpg";
+import femaleTunic from "@/assets/services/female-tunic.jpg";
+import femalePants from "@/assets/services/female-pants.jpg";
+import femaleJeans from "@/assets/services/female-jeans.jpg";
+import femaleTrouser from "@/assets/services/female-trouser.jpg";
 
 export interface ServiceVariant {
   name: string;
@@ -81,7 +90,7 @@ const maleServices: ServiceCategory = {
           price: 91,
           description: "Length, waist, or full fitting alteration",
           time: "24-48 hours",
-          image: malePant,
+          image: maleChinos,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 91 },
@@ -97,7 +106,7 @@ const maleServices: ServiceCategory = {
           price: 141,
           description: "Length, waist, or full fitting alteration",
           time: "24-48 hours",
-          image: malePant,
+          image: maleTrousers,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 141 },
@@ -126,7 +135,7 @@ const maleServices: ServiceCategory = {
           price: 91,
           description: "Length or waist adjustment",
           time: "24 hours",
-          image: malePant,
+          image: maleShorts,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 91 },
@@ -297,7 +306,7 @@ const femaleServices: ServiceCategory = {
           price: 141,
           description: "Side fitting alteration",
           time: "24 hours",
-          image: femaleKurti,
+          image: femaleTop,
           variants: [
             { name: "Side Fitting", price: 141 },
           ],
@@ -310,7 +319,7 @@ const femaleServices: ServiceCategory = {
           price: 111,
           description: "Sleeves or side fitting alteration",
           time: "24-48 hours",
-          image: femaleKurti,
+          image: femaleShirt,
           variants: [
             { name: "Sleeves", price: 111 },
             { name: "Side Fitting", price: 141 },
@@ -324,7 +333,7 @@ const femaleServices: ServiceCategory = {
           price: 291,
           description: "Full fitting alteration",
           time: "24-48 hours",
-          image: femaleKurti,
+          image: femaleTunic,
           variants: [
             { name: "Full Fitting", price: 291 },
           ],
@@ -370,7 +379,7 @@ const femaleServices: ServiceCategory = {
           price: 121,
           description: "Length or waist adjustment",
           time: "24-48 hours",
-          image: femalePalazzo,
+          image: femalePants,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 121 },
@@ -384,7 +393,7 @@ const femaleServices: ServiceCategory = {
           price: 91,
           description: "Length or waist adjustment",
           time: "24-48 hours",
-          image: femalePalazzo,
+          image: femaleJeans,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 91 },
@@ -398,7 +407,7 @@ const femaleServices: ServiceCategory = {
           price: 121,
           description: "Length or waist adjustment",
           time: "24-48 hours",
-          image: femalePalazzo,
+          image: femaleTrouser,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 121 },
