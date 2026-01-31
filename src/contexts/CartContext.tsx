@@ -3,16 +3,19 @@ import { ServiceItem, getMinPrice } from "@/data/services";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Try to use auth context, but don't crash if unavailable
-const useAuthSafe = () => {
-  try {
-    // Dynamic import to avoid circular dependency issues
-    const { useAuth } = require("@/hooks/useAuth");
-    return useAuth();
-  } catch {
-    return { user: null, isAuthenticated: false };
-  }
-};
+const noop = () => {};
+
+const FALLBACK_CART_CONTEXT = {
+  items: [],
+  addToCart: noop,
+  removeFromCart: noop,
+  updateQuantity: noop,
+  clearCart: noop,
+  totalItems: 0,
+  totalAmount: 0,
+  isInCart: () => false,
+  isLoading: false,
+} as const;
 
 export interface CartItem {
   id: string;
@@ -39,9 +42,20 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export const useCart = () => {
   const context = useContext(CartContext);
+
+  // IMPORTANT: Do not hard-crash the entire app if the provider is missing.
+  // This prevents blank screens; we'll log loudly so we can still diagnose.
   if (!context) {
-    throw new Error("useCart must be used within a CartProvider");
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.error(
+        "useCart was called without a CartProvider. Falling back to empty cart.",
+        { pathname: window.location?.pathname }
+      );
+    }
+    return FALLBACK_CART_CONTEXT;
   }
+
   return context;
 };
 
