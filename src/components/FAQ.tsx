@@ -31,7 +31,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "How do I track my order?",
-    answer: "Once your garment is picked up, you'll receive real-time SMS and app notifications at every stage — pickup confirmation, tailor assignment, alteration started, quality check, and delivery dispatch.",
+    answer: "Once your garment is picked up, you'll receive updates via SMS and WhatsApp at every stage — pickup confirmation, alteration started, quality check complete, and delivery on the way. You can also call us anytime to check your order status.",
   },
   {
     question: "Do you handle bridal and wedding wear?",
@@ -57,7 +57,7 @@ export const FAQ: React.FC = () => {
           <span className="text-primary font-medium text-sm tracking-wider uppercase mb-4 block">
             FAQ
           </span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
             Got{" "}
             <span className="text-gradient-gold">Questions?</span>
           </h2>

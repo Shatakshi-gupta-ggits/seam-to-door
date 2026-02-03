@@ -1,19 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Only import the first image eagerly for LCP
+// Import all gallery images directly to avoid path resolution issues
 import blazerFull from "@/assets/gallery/Blazer Full Fitting  .png";
+import blazerSide from "@/assets/gallery/Blazer Side Fitting .png";
+import blazerSleeves from "@/assets/gallery/Blazer Sleeves Fitting.png";
+import sherwaniSleeves from "@/assets/gallery/Sherwani Sleeves Fitting .png";
+import shirtFormal from "@/assets/gallery/Shirt Formal and Casual Fitting.png";
+import shirtShoulder from "@/assets/gallery/Shirt Shoulder Fitting.png";
+import trouserLength from "@/assets/gallery/Trouser Length Fitting.png";
+import trouserWaist from "@/assets/gallery/Trouser Waist Fitting.png";
 
-// Create image URLs for lazy loading (don't import them)
 const galleryImagePaths = [
   { src: blazerFull, alt: "Blazer Full Fitting", loaded: true },
-  { src: "/src/assets/gallery/Blazer Side Fitting .png", alt: "Blazer Side Fitting", loaded: false },
-  { src: "/src/assets/gallery/Blazer Sleeves Fitting.png", alt: "Blazer Sleeves Fitting", loaded: false },
-  { src: "/src/assets/gallery/Sherwani Sleeves Fitting .png", alt: "Sherwani Sleeves Fitting", loaded: false },
-  { src: "/src/assets/gallery/Shirt Formal and Casual Fitting.png", alt: "Shirt Formal and Casual Fitting", loaded: false },
-  { src: "/src/assets/gallery/Shirt Shoulder Fitting.png", alt: "Shirt Shoulder Fitting", loaded: false },
-  { src: "/src/assets/gallery/Trouser Length Fitting.png", alt: "Trouser Length Fitting", loaded: false },
-  { src: "/src/assets/gallery/Trouser Waist Fitting.png", alt: "Trouser Waist Fitting", loaded: false },
+  { src: blazerSide, alt: "Blazer Side Fitting", loaded: true },
+  { src: blazerSleeves, alt: "Blazer Sleeves Fitting", loaded: true },
+  { src: sherwaniSleeves, alt: "Sherwani Sleeves Fitting", loaded: true },
+  { src: shirtFormal, alt: "Shirt Formal and Casual Fitting", loaded: true },
+  { src: shirtShoulder, alt: "Shirt Shoulder Fitting", loaded: true },
+  { src: trouserLength, alt: "Trouser Length Fitting", loaded: true },
+  { src: trouserWaist, alt: "Trouser Waist Fitting", loaded: true },
 ];
 
 export const Gallery = () => {

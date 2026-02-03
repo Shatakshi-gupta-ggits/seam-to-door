@@ -69,7 +69,7 @@ export const Navbar = () => {
               <motion.img
                 src={logo}
                 alt="Mr Finisher Logo"
-                className="w-8 h-8 transition-transform duration-300 group-hover:rotate-45"
+                className="w-10 h-10 md:w-12 md:h-12 transition-transform duration-300 group-hover:rotate-45"
                 whileHover={{ scale: 1.1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />

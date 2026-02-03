@@ -155,7 +155,7 @@ export const Hero = () => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">Jabalpur's Trusted Alteration Service</span>
+              <span className="text-sm text-primary font-medium">Jabalpur's Trusted Cloth Fitting & Alteration Service</span>
             </motion.div>
 
             <motion.h1
@@ -195,17 +195,17 @@ export const Hero = () => {
             </p>
 
             <p className="text-sm text-primary font-medium mb-8 max-w-xl mx-auto lg:mx-0 flex items-center justify-center lg:justify-start gap-4 flex-wrap">
+              <span className="flex items-center gap-1 bg-primary/20 px-2 py-1 rounded-full">
+                <Car className="w-4 h-4" />
+                <strong>FREE</strong> Pickup & Delivery
+              </span>
               <span className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
-                Serving all areas in Jabalpur
+                Serving Jabalpur
               </span>
               <span className="flex items-center gap-1">
                 <Timer className="w-4 h-4" />
-                24-48 hours delivery
-              </span>
-              <span className="flex items-center gap-1">
-                <Car className="w-4 h-4" />
-                Free pickup & delivery
+                24-48 hrs turnaround
               </span>
             </p>
 

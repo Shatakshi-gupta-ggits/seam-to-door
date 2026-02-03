@@ -109,6 +109,7 @@ const Booking = () => {
 
   const [state, handleSubmit] = useForm("xjknnzow");
   const [date, setDate] = useState<Date>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [time, setTime] = useState<string>("");
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
@@ -957,7 +958,7 @@ const Booking = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Select Date *</Label>
-                  <Popover>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -974,7 +975,10 @@ const Booking = () => {
                       <CalendarComponent
                         mode="single"
                         selected={date}
-                        onSelect={setDate}
+                        onSelect={(selectedDate) => {
+                          setDate(selectedDate);
+                          setIsCalendarOpen(false);
+                        }}
                         disabled={(d) => d < new Date() || d < new Date("1900-01-01")}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
