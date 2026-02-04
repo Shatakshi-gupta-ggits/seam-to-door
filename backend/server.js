@@ -9,12 +9,8 @@ require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
 const serviceRoutes = require('./routes/services');
 const bookingRoutes = require('./routes/bookings');
-const paymentRoutes = require('./routes/payments');
-const uploadRoutes = require('./routes/upload');
-const adminRoutes = require('./routes/admin');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -69,12 +65,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/admin', adminRoutes);
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -85,12 +77,8 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
-      users: '/api/users',
       services: '/api/services',
-      bookings: '/api/bookings',
-      payments: '/api/payments',
-      upload: '/api/upload',
-      admin: '/api/admin'
+      bookings: '/api/bookings'
     }
   });
 });
