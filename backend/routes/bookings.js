@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/auth').authenticate;
 const { body, validationResult } = require('express-validator');
 
 // Get all bookings for a user
