@@ -197,11 +197,16 @@ const Profile = () => {
         try {
           const { latitude, longitude } = position.coords;
           
-          // Use a faster, more reliable geocoding service
+          // Use a faster, more reliable geocoding service with timeout
+          const controller = new AbortController();
+          const fetchTimeoutId = setTimeout(() => controller.abort(), 5000);
+          
           const response = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
-            { signal: AbortSignal.timeout(10000) } // 10 second timeout
+            { signal: controller.signal }
           );
+          
+          clearTimeout(fetchTimeoutId);
           
           if (!response.ok) throw new Error('Geocoding failed');
           
@@ -218,8 +223,12 @@ const Profile = () => {
             toast.success('Location fetched successfully!');
           }
         } catch (error) {
-          console.error('Error getting address:', error);
-          toast.error('Failed to get address from location');
+          if (error.name === 'AbortError') {
+            toast.error('Location request timed out');
+          } else {
+            console.error('Error getting address:', error);
+            toast.error('Failed to get address from location');
+          }
         } finally {
           setLocating(false);
         }
@@ -230,7 +239,7 @@ const Profile = () => {
         toast.error('Failed to get your location. Please enable location access.');
         setLocating(false);
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 } // Use cached location if available
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 } // Use cached location if available
     );
   };
 
