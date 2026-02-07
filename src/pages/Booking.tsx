@@ -33,30 +33,61 @@ import { jsPDF } from "jspdf";
 import SEO from "@/components/SEO";
 import { useCart } from "@/contexts/CartContext";
 import { serviceCategories, ServiceItem, ServiceVariant, getMinPrice } from "@/data/services";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
-const timeSlots = [
-  "09:00 AM",
-  "09:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "12:00 PM",
-  "12:30 PM",
-  "01:00 PM",
-  "01:30 PM",
-  "02:00 PM",
-  "02:30 PM",
-  "03:00 PM",
-  "03:30 PM",
-  "04:00 PM",
-  "04:30 PM",
-  "05:00 PM",
-  "05:30 PM",
-  "06:00 PM",
-  "06:30 PM",
-  "07:00 PM",
+const allTimeSlots = [
+  { time: "09:00 AM", hour: 9, minute: 0 },
+  { time: "09:30 AM", hour: 9, minute: 30 },
+  { time: "10:00 AM", hour: 10, minute: 0 },
+  { time: "10:30 AM", hour: 10, minute: 30 },
+  { time: "11:00 AM", hour: 11, minute: 0 },
+  { time: "11:30 AM", hour: 11, minute: 30 },
+  { time: "12:00 PM", hour: 12, minute: 0 },
+  { time: "12:30 PM", hour: 12, minute: 30 },
+  { time: "01:00 PM", hour: 13, minute: 0 },
+  { time: "01:30 PM", hour: 13, minute: 30 },
+  { time: "02:00 PM", hour: 14, minute: 0 },
+  { time: "02:30 PM", hour: 14, minute: 30 },
+  { time: "03:00 PM", hour: 15, minute: 0 },
+  { time: "03:30 PM", hour: 15, minute: 30 },
+  { time: "04:00 PM", hour: 16, minute: 0 },
+  { time: "04:30 PM", hour: 16, minute: 30 },
+  { time: "05:00 PM", hour: 17, minute: 0 },
+  { time: "05:30 PM", hour: 17, minute: 30 },
+  { time: "06:00 PM", hour: 18, minute: 0 },
+  { time: "06:30 PM", hour: 18, minute: 30 },
+  { time: "07:00 PM", hour: 19, minute: 0 },
 ];
+
+// Helper to get available time slots based on selected date
+const getAvailableTimeSlots = (selectedDate: Date | undefined) => {
+  if (!selectedDate) return allTimeSlots.map(s => s.time);
+  
+  const now = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selectedDay = new Date(selectedDate);
+  selectedDay.setHours(0, 0, 0, 0);
+  
+  // If not today, all slots available
+  if (selectedDay.getTime() !== today.getTime()) {
+    return allTimeSlots.map(s => s.time);
+  }
+  
+  // For today, only show slots at least 1 hour from now
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const minSlotHour = currentHour + 1; // At least 1 hour gap
+  
+  return allTimeSlots
+    .filter(slot => {
+      if (slot.hour > minSlotHour) return true;
+      if (slot.hour === minSlotHour && slot.minute >= currentMinute) return true;
+      return false;
+    })
+    .map(s => s.time);
+};
 
 const jabalpurPlaces = [
   "Vijay Nagar",
@@ -104,6 +135,8 @@ const Booking = () => {
   const [searchParams] = useSearchParams();
   const preSelectedService = searchParams.get("service") || "";
   const preSelectedServices = searchParams.get("services") || "";
+  
+  const { user, isAuthenticated, descopeUser, isDescopeAuth } = useAuth();
 
   const { items: cartItems, updateQuantity: updateCartQuantity, removeFromCart, clearCart, totalAmount: cartTotal } = useCart();
 
@@ -119,6 +152,7 @@ const Booking = () => {
     'female': true // Open female category by default
   });
   const [expandedSubcategories, setExpandedSubcategories] = useState<{[key: string]: boolean}>({});
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -130,6 +164,54 @@ const Booking = () => {
     phone2: "",
     mapLink: "",
   });
+
+  // Autofill form with saved profile data for returning customers
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (profileLoaded) return;
+      
+      let userId: string | null = null;
+      
+      // Get user ID from either Supabase auth or Descope
+      if (user?.id) {
+        userId = user.id;
+      } else if (isDescopeAuth && descopeUser?.userId) {
+        userId = `descope_${descopeUser.userId}`;
+      }
+      
+      if (!userId) return;
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+        
+        if (profile) {
+          setFormData(prev => ({
+            ...prev,
+            customerName: profile.full_name || prev.customerName,
+            phone1: profile.phone || prev.phone1,
+            streetArea: profile.address || prev.streetArea,
+            place: profile.city || prev.place,
+            pincode: profile.pincode || prev.pincode,
+          }));
+        }
+        
+        setProfileLoaded(true);
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      }
+    };
+    
+    loadProfileData();
+  }, [user, isDescopeAuth, descopeUser, profileLoaded]);
 
   // Initialize with cart items on mount
   useEffect(() => {
@@ -222,11 +304,43 @@ const Booking = () => {
 
   const toggleService = (service: ServiceItem, variant?: ServiceVariant) => {
     setSelectedServices((prev) => {
-      const existing = prev.find((s) => s.id === service.id);
-      if (existing) return prev.filter((s) => s.id !== service.id);
+      // Check if already selected with same variant - if so, remove
+      const existingWithSameVariant = prev.find(
+        (s) => s.id === service.id && s.selectedVariant?.name === variant?.name
+      );
+      if (existingWithSameVariant) {
+        return prev.filter((s) => !(s.id === service.id && s.selectedVariant?.name === variant?.name));
+      }
+      
+      // Remove any existing variants of this service first
+      let newList = prev.filter((s) => s.id !== service.id);
+      
+      // Handle mutual exclusivity for fitting options
+      // If selecting "Full Fitting", uncheck "Length", "Waist", "Length + Waist" variants
+      // If selecting "Length", "Waist", or "Length + Waist", uncheck "Full Fitting"
+      if (variant) {
+        const variantName = variant.name.toLowerCase();
+        const isFullFitting = variantName.includes('full fitting');
+        const isLengthOrWaist = variantName.includes('length') || variantName.includes('waist');
+        
+        if (isFullFitting || isLengthOrWaist) {
+          // Remove conflicting variants from the same service
+          newList = newList.filter((s) => {
+            if (s.id !== service.id) return true;
+            const selVariant = s.selectedVariant?.name?.toLowerCase() || '';
+            if (isFullFitting) {
+              // Remove length/waist variants
+              return !(selVariant.includes('length') || selVariant.includes('waist'));
+            } else {
+              // Remove full fitting variant
+              return !selVariant.includes('full fitting');
+            }
+          });
+        }
+      }
       
       const price = variant ? variant.price : getMinPrice(service);
-      return [...prev, { 
+      return [...newList, { 
         id: service.id, 
         name: service.name, 
         price, 
@@ -979,7 +1093,11 @@ const Booking = () => {
                           setDate(selectedDate);
                           setIsCalendarOpen(false);
                         }}
-                        disabled={(d) => d < new Date() || d < new Date("1900-01-01")}
+                        disabled={(d) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          return d < today;
+                        }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
                       />
@@ -999,7 +1117,7 @@ const Booking = () => {
                     <option value="" disabled>
                       Select time slot
                     </option>
-                    {timeSlots.map((slot) => (
+                    {getAvailableTimeSlots(date).map((slot) => (
                       <option key={slot} value={slot}>
                         {slot}
                       </option>
@@ -1007,7 +1125,9 @@ const Booking = () => {
                   </select>
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    Choose a convenient pickup time
+                    {date && new Date(date).toDateString() === new Date().toDateString() 
+                      ? "Same-day slots available (1hr minimum from now)"
+                      : "Choose a convenient pickup time"}
                   </p>
                 </div>
               </div>

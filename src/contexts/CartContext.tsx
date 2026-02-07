@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
-import { ServiceItem, getMinPrice } from "@/data/services";
+import { ServiceItem, ServiceVariant, getMinPrice } from "@/data/services";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,6 +14,7 @@ const FALLBACK_CART_CONTEXT = {
   totalItems: 0,
   totalAmount: 0,
   isInCart: () => false,
+  getItemQuantity: () => 0,
   isLoading: false,
 } as const;
 
@@ -24,17 +25,19 @@ export interface CartItem {
   quantity: number;
   image: string;
   category: string;
+  variantName?: string; // Add variant support
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (service: ServiceItem) => void;
-  removeFromCart: (serviceId: string) => void;
-  updateQuantity: (serviceId: string, quantity: number) => void;
+  addToCart: (service: ServiceItem, variant?: ServiceVariant) => void;
+  removeFromCart: (serviceId: string, variantName?: string) => void;
+  updateQuantity: (serviceId: string, quantity: number, variantName?: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalAmount: number;
-  isInCart: (serviceId: string) => boolean;
+  isInCart: (serviceId: string, variant?: ServiceVariant) => boolean;
+  getItemQuantity: (serviceId: string, variant?: ServiceVariant) => number;
   isLoading: boolean;
 }
 
@@ -177,29 +180,34 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isAuthenticated, user]);
 
-  const addToCart = useCallback((service: ServiceItem) => {
+  const addToCart = useCallback((service: ServiceItem, variant?: ServiceVariant) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.id === service.id);
+      const cartItemId = variant ? `${service.id}-${variant.name}` : service.id;
+      const existing = prev.find((item) => item.id === cartItemId);
       let newItems: CartItem[];
+
+      const itemName = variant ? `${service.name} - ${variant.name}` : service.name;
+      const itemPrice = variant ? variant.price : getMinPrice(service);
 
       if (existing) {
         newItems = prev.map((item) =>
-          item.id === service.id
+          item.id === cartItemId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
-        toast.success(`Added another ${service.name} to cart`);
+        toast.success(`Added another ${itemName} to cart`);
       } else {
         const newItem: CartItem = {
-          id: service.id,
-          name: service.name,
-          price: getMinPrice(service),
+          id: cartItemId,
+          name: itemName,
+          price: itemPrice,
           quantity: 1,
           image: service.image,
           category: service.category,
+          variantName: variant?.name,
         };
         newItems = [...prev, newItem];
-        toast.success(`${service.name} added to cart`);
+        toast.success(`${itemName} added to cart`);
       }
 
       // Persist asynchronously
@@ -208,21 +216,23 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, [persistCart]);
 
-  const removeFromCart = useCallback((serviceId: string) => {
+  const removeFromCart = useCallback((serviceId: string, variantName?: string) => {
     setItems((prev) => {
-      const newItems = prev.filter((item) => item.id !== serviceId);
+      const cartItemId = variantName ? `${serviceId}-${variantName}` : serviceId;
+      const newItems = prev.filter((item) => item.id !== cartItemId);
       persistCart(newItems);
       toast.info("Item removed from cart");
       return newItems;
     });
   }, [persistCart]);
 
-  const updateQuantity = useCallback((serviceId: string, quantity: number) => {
+  const updateQuantity = useCallback((serviceId: string, quantity: number, variantName?: string) => {
     if (quantity < 1) return;
 
     setItems((prev) => {
+      const cartItemId = variantName ? `${serviceId}-${variantName}` : serviceId;
       const newItems = prev.map((item) =>
-        item.id === serviceId ? { ...item, quantity } : item
+        item.id === cartItemId ? { ...item, quantity } : item
       );
       persistCart(newItems);
       return newItems;
@@ -256,7 +266,19 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const isInCart = useCallback(
-    (serviceId: string) => items.some((item) => item.id === serviceId),
+    (serviceId: string, variant?: ServiceVariant) => {
+      const cartItemId = variant ? `${serviceId}-${variant.name}` : serviceId;
+      return items.some((item) => item.id === cartItemId);
+    },
+    [items]
+  );
+
+  const getItemQuantity = useCallback(
+    (serviceId: string, variant?: ServiceVariant) => {
+      const cartItemId = variant ? `${serviceId}-${variant.name}` : serviceId;
+      const item = items.find((item) => item.id === cartItemId);
+      return item?.quantity || 0;
+    },
     [items]
   );
 
@@ -271,6 +293,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         totalItems,
         totalAmount,
         isInCart,
+        getItemQuantity,
         isLoading,
       }}
     >
