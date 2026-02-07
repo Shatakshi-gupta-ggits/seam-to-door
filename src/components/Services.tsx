@@ -5,7 +5,7 @@ import { ShoppingCart, Plus, Check, Clock, Truck } from "lucide-react";
 import { serviceCategories, ServiceItem, getMinPrice } from "@/data/services";
 import { useCart } from "@/contexts/CartContext";
 import { ServicesCarousel } from "@/components/ServicesCarousel";
-
+import { ServiceDetailModal } from "@/components/ServiceDetailModal";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -32,9 +32,15 @@ export const Services = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [selectedCategory, setSelectedCategory] = useState<string>("male");
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const currentCategory = serviceCategories.find(c => c.id === selectedCategory);
 
+  const handleServiceClick = (service: ServiceItem) => {
+    setSelectedService(service);
+    setIsModalOpen(true);
+  };
   return (
     <section ref={ref} id="services" className="py-16 md:py-24 relative overflow-hidden">
       <div className="container mx-auto px-4">
@@ -134,6 +140,7 @@ export const Services = () => {
                       <ServiceCard
                         key={service.id}
                         service={service}
+                        onClick={() => handleServiceClick(service)}
                       />
                     ))}
                   </motion.div>
@@ -143,15 +150,23 @@ export const Services = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Service Detail Modal */}
+      <ServiceDetailModal
+        service={selectedService}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </section>
   );
 };
 
 interface ServiceCardProps {
   service: ServiceItem;
+  onClick: () => void;
 }
 
-const ServiceCard = ({ service }: ServiceCardProps) => {
+const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
   const minPrice = getMinPrice(service);
   const { addToCart, isInCart } = useCart();
   const inCart = isInCart(service.id);
@@ -161,7 +176,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       variants={cardVariants}
       whileHover={{ y: -5 }}
       whileTap={{ scale: 0.98 }}
-      className="group relative bg-card rounded-xl md:rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-gold"
+      onClick={onClick}
+      className="group relative bg-card rounded-xl md:rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-gold cursor-pointer"
     >
       {/* Service Image */}
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
@@ -200,30 +216,21 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         <div className="flex items-center justify-between gap-2">
           <div>
             <span className="text-[9px] md:text-[10px] text-muted-foreground block">Starting from</span>
-            <p className="text-base md:text-xl font-display font-bold text-primary group-hover:text-charcoal transition-colors">
+            <p className="text-base md:text-xl font-display font-bold text-primary transition-colors">
               ₹{minPrice}
             </p>
           </div>
           <Button
-            variant={inCart ? "goldOutline" : "gold"}
+            variant="gold"
             size="sm"
             className="text-[10px] md:text-xs px-2.5 md:px-4 py-1 h-7 md:h-9"
             onClick={(e) => {
               e.stopPropagation();
-              addToCart(service);
+              onClick();
             }}
           >
-            {inCart ? (
-              <>
-                <Plus className="w-3 h-3 mr-0.5" />
-                Add More
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="w-3 h-3 mr-0.5" />
-                Add
-              </>
-            )}
+            <ShoppingCart className="w-3 h-3 mr-0.5" />
+            View Options
           </Button>
         </div>
       </div>
