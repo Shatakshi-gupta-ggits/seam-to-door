@@ -200,7 +200,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         <div className="flex items-center justify-between gap-2">
           <div>
             <span className="text-[9px] md:text-[10px] text-muted-foreground block">Starting from</span>
-            <p className="text-base md:text-xl font-display font-bold text-primary">
+            <p className="text-base md:text-xl font-display font-bold text-primary group-hover:text-charcoal transition-colors">
               ₹{minPrice}
             </p>
           </div>
