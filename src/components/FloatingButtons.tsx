@@ -79,7 +79,7 @@ export const FloatingButtons = () => {
             >
               <div className="relative">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="absolute -top-2 -right-2 w-5 h-5 bg-background text-primary text-xs font-bold rounded-full flex items-center justify-center border-2 border-primary">
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-charcoal text-primary text-xs font-bold rounded-full flex items-center justify-center border-2 border-primary">
                   {totalItems}
                 </span>
               </div>
