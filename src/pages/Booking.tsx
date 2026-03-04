@@ -558,11 +558,13 @@ const Booking = () => {
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text("Thank you for choosing Mister Finisher!", pageWidth / 2, yPos, { align: "center" });
+    doc.text("Thank you for choosing Mr Finisher!", pageWidth / 2, yPos, { align: "center" });
     yPos += 5;
     doc.text("We will contact you shortly to confirm your pickup.", pageWidth / 2, yPos, { align: "center" });
     yPos += 5;
-    doc.text("For queries, call: +91 98765 43210", pageWidth / 2, yPos, { align: "center" });
+    doc.text("For queries, call: +91 9407-826-370 | +91 9244-341-507", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    doc.text("M-51, MR-4 Rd, Vijay Nagar, Jabalpur, MP 482002", pageWidth / 2, yPos, { align: "center" });
     
     // Save PDF
     doc.save(`MisterFinisher-Invoice-${orderNumber}.pdf`);
@@ -732,22 +734,22 @@ const Booking = () => {
 
                         <div className="flex items-center gap-2">
                           {service.id !== 'custom-alteration' && (
-                            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                            <div className="flex items-center gap-1 bg-secondary border border-border rounded-lg p-1">
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7"
+                                className="h-7 w-7 text-foreground hover:text-foreground"
                                 onClick={() => updateQuantity(service.id, -1)}
                               >
                                 <Minus className="w-3 h-3" />
                               </Button>
-                              <span className="w-8 text-center font-semibold text-sm">{service.quantity}</span>
+                              <span className="w-8 text-center font-semibold text-sm text-foreground">{service.quantity}</span>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7"
+                                className="h-7 w-7 text-foreground hover:text-foreground"
                                 onClick={() => updateQuantity(service.id, 1)}
                               >
                                 <Plus className="w-3 h-3" />

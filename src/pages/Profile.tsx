@@ -464,7 +464,13 @@ const Profile = () => {
                     variant="outline"
                     size="sm"
                     className="mt-4"
-                    onClick={() => navigate('/home')}
+                    onClick={() => {
+                      navigate('/home');
+                      setTimeout(() => {
+                        const el = document.getElementById('services');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }, 300);
+                    }}
                   >
                     Browse Services
                   </Button>
