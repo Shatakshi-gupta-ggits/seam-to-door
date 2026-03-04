@@ -9,7 +9,7 @@ const footerLinks = {
     { label: "Shirt Tailoring", href: "#services" },
     { label: "Dress Fitting", href: "#services" },
     { label: "Ethnic Wear", href: "#services" },
-    { label: "Bridal Services", href: "#services" },
+    
   ],
   company: [
     { label: "About Us", href: "#" },

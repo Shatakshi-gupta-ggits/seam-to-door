@@ -27,7 +27,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "What's your return policy?",
-    answer: "Your satisfaction is guaranteed. If you're not happy with the alteration, we'll re-do it free of charge. If issues persist, you'll receive a full refund.",
+    answer: "Your satisfaction is guaranteed. If you're not happy with the alteration, we'll re-do it free of charge.",
   },
   {
     question: "How do I track my order?",

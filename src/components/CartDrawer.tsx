@@ -44,7 +44,13 @@ export const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
               <p className="text-muted-foreground text-sm mb-4">
                 Add some alteration services to get started
               </p>
-              <Button variant="gold" onClick={() => onOpenChange(false)}>
+              <Button variant="gold" onClick={() => {
+                onOpenChange(false);
+                const servicesSection = document.getElementById('services');
+                if (servicesSection) {
+                  servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}>
                 Browse Services
               </Button>
             </div>
@@ -82,16 +88,16 @@ export const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
-                            className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50"
+                            className="w-6 h-6 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50 text-foreground"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="text-sm font-medium w-6 text-center">
+                          <span className="text-sm font-medium w-6 text-center text-foreground">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+                            className="w-6 h-6 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors text-foreground"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
