@@ -501,54 +501,70 @@ const Booking = () => {
     yPos += 10;
     
     // Table Header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(20, yPos - 5, pageWidth - 40, 10, 'F');
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
+    doc.setFillColor(139, 92, 42);
+    doc.rect(20, yPos - 6, pageWidth - 40, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("Service", 25, yPos);
-    doc.text("Qty", 110, yPos);
-    doc.text("Price", 135, yPos);
-    doc.text("Total", 165, yPos);
-    yPos += 10;
+    doc.text("Qty", 120, yPos, { align: "center" });
+    doc.text("Price", 145, yPos, { align: "center" });
+    doc.text("Total", pageWidth - 25, yPos, { align: "right" });
+    yPos += 12;
     
-    // Table Rows
+    // Table Rows with alternating backgrounds
     doc.setFont("helvetica", "normal");
-    selectedServices.forEach((service) => {
+    doc.setFontSize(11);
+    selectedServices.forEach((service, idx) => {
+      // Alternating row background
+      if (idx % 2 === 0) {
+        doc.setFillColor(248, 248, 248);
+        doc.rect(20, yPos - 6, pageWidth - 40, 10, 'F');
+      }
+      
       const lineTotal = service.price * service.quantity;
       const serviceName = service.selectedVariant 
         ? `${service.name} (${service.selectedVariant.name})`
         : service.name;
-      doc.text(serviceName, 25, yPos);
-      doc.text(service.quantity.toString(), 110, yPos);
-      doc.text(`₹${service.price}`, 135, yPos);
-      doc.text(`₹${lineTotal}`, 165, yPos);
-      yPos += 8;
+      
+      doc.setTextColor(30, 30, 30);
+      doc.text(serviceName.length > 35 ? serviceName.substring(0, 35) + '...' : serviceName, 25, yPos);
+      doc.text(service.quantity.toString(), 120, yPos, { align: "center" });
+      doc.text(`Rs. ${service.price}`, 145, yPos, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.text(`Rs. ${lineTotal}`, pageWidth - 25, yPos, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      yPos += 10;
     });
     
     // Divider before total
     yPos += 5;
     doc.setDrawColor(139, 92, 42);
+    doc.setLineWidth(1);
     doc.line(20, yPos, pageWidth - 20, yPos);
-    yPos += 10;
+    yPos += 12;
     
-    // Total Amount
-    doc.setFontSize(14);
+    // Total Amount - large and prominent
+    doc.setFillColor(139, 92, 42);
+    doc.rect(20, yPos - 7, pageWidth - 40, 16, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("TOTAL AMOUNT:", 25, yPos);
-    doc.setTextColor(139, 92, 42);
-    doc.text(`₹${totalAmount}`, 165, yPos);
+    doc.text("TOTAL AMOUNT", 25, yPos + 3);
+    doc.text(`Rs. ${totalAmount}`, pageWidth - 25, yPos + 3, { align: "right" });
     yPos += 20;
     
     // Footer
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text("Thank you for choosing Mister Finisher!", pageWidth / 2, yPos, { align: "center" });
+    doc.text("Thank you for choosing Mr Finisher!", pageWidth / 2, yPos, { align: "center" });
     yPos += 5;
     doc.text("We will contact you shortly to confirm your pickup.", pageWidth / 2, yPos, { align: "center" });
     yPos += 5;
-    doc.text("For queries, call: +91 98765 43210", pageWidth / 2, yPos, { align: "center" });
+    doc.text("For queries, call: +91 9407-826-370 | +91 9244-341-507", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    doc.text("M-51, MR-4 Rd, Vijay Nagar, Jabalpur, MP 482002", pageWidth / 2, yPos, { align: "center" });
     
     // Save PDF
     doc.save(`MisterFinisher-Invoice-${orderNumber}.pdf`);
@@ -718,22 +734,22 @@ const Booking = () => {
 
                         <div className="flex items-center gap-2">
                           {service.id !== 'custom-alteration' && (
-                            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                            <div className="flex items-center gap-1 bg-secondary border border-border rounded-lg p-1">
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7"
+                                className="h-7 w-7 text-foreground hover:text-foreground"
                                 onClick={() => updateQuantity(service.id, -1)}
                               >
                                 <Minus className="w-3 h-3" />
                               </Button>
-                              <span className="w-8 text-center font-semibold text-sm">{service.quantity}</span>
+                              <span className="w-8 text-center font-semibold text-sm text-foreground">{service.quantity}</span>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7"
+                                className="h-7 w-7 text-foreground hover:text-foreground"
                                 onClick={() => updateQuantity(service.id, 1)}
                               >
                                 <Plus className="w-3 h-3" />

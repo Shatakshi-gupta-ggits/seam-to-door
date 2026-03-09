@@ -42,7 +42,7 @@ export const ServiceDetailModal = ({ service, isOpen, onClose }: ServiceDetailMo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-full bg-card border border-border rounded-2xl shadow-lift z-50 overflow-hidden flex flex-col max-h-[90vh]"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-[calc(100%-2rem)] bg-card border border-border rounded-2xl shadow-lift z-50 overflow-hidden flex flex-col max-h-[85vh] md:max-h-[80vh]"
           >
             {/* Header with Image */}
             <div className="relative">

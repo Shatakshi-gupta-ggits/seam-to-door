@@ -349,13 +349,13 @@ export const Hero = () => {
                               }`}
                           >
                             <div className="flex items-center gap-3">
-                              <Package className="w-5 h-5 text-primary" />
-                              <span className="text-sm font-medium text-foreground">{subcategory.name}</span>
+                              <Package className="w-5 h-5 text-foreground" />
+                              <span className="text-sm font-semibold text-foreground">{subcategory.name}</span>
                             </div>
                             {expandedCategory === subcategory.name ? (
-                              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                              <ChevronUp className="w-4 h-4 text-foreground" />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                              <ChevronDown className="w-4 h-4 text-foreground" />
                             )}
                           </button>
 
