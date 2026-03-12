@@ -317,7 +317,7 @@ export const Hero = () => {
                       onClick={() => handleGenderSelect('male')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'male'
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
+                        : 'bg-[hsl(0,0%,75%)] text-[hsl(0,0%,6%)] hover:bg-[hsl(0,0%,65%)]'
                         }`}
                     >
                       <User className="w-5 h-5" />
@@ -327,7 +327,7 @@ export const Hero = () => {
                       onClick={() => handleGenderSelect('female')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'female'
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
+                        : 'bg-[hsl(0,0%,75%)] text-[hsl(0,0%,6%)] hover:bg-[hsl(0,0%,65%)]'
                         }`}
                     >
                       <Users className="w-5 h-5" />
