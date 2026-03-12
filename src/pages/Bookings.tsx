@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
+import { supabase } from '@/integrations/supabase/client';
 interface OrderItem {
   id: string;
   service_name: string;
