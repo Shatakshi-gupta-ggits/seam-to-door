@@ -12,21 +12,13 @@ import maleChinos from "@/assets/services/male-chinos.jpg";
 import maleTrousers from "@/assets/services/male-trousers.jpg";
 import maleShorts from "@/assets/services/male-shorts.jpg";
 
-// Female outfit images - realistic photos
-import femaleKurti from "@/assets/services/female-kurti.jpg";
-import femaleSalwar from "@/assets/services/female-salwar.jpg";
-import femalePalazzo from "@/assets/services/female-palazzo.jpg";
-import femaleSuit from "@/assets/services/female-suit.jpg";
-import femaleDress from "@/assets/services/female-dress.jpg";
-import femaleGown from "@/assets/services/female-gown.jpg";
-import femaleJumpsuit from "@/assets/services/female-jumpsuit.jpg";
-import femaleJacket from "@/assets/services/female-jacket.jpg";
-import femaleTop from "@/assets/services/female-top.jpg";
-import femaleShirt from "@/assets/services/female-shirt.jpg";
-import femaleTunic from "@/assets/services/female-tunic.jpg";
-import femalePants from "@/assets/services/female-pants.jpg";
-import femaleJeans from "@/assets/services/female-jeans.jpg";
-import femaleTrouser from "@/assets/services/female-trouser.jpg";
+// Female outfit images - using new PNG files from public folder
+import femaleKurti from "/FEMALEKURTA.png";
+import femaleSalwar from "/FemaleSalwar.png";
+import femalePalazzo from "/FemalePalazzo.png";
+import femalePants from "/FemalePant.png";
+import femaleTrouser from "/FemaleTrouser.png";
+import femaleShirt from "/finalFEMALESHIRT.png";
 
 export interface ServiceVariant {
   name: string;
@@ -306,7 +298,7 @@ const femaleServices: ServiceCategory = {
           price: 141,
           description: "Side fitting alteration",
           time: "24 hours",
-          image: femaleTop,
+          image: femaleShirt, // Using female shirt image for top
           variants: [
             { name: "Side Fitting", price: 141 },
           ],
@@ -333,7 +325,7 @@ const femaleServices: ServiceCategory = {
           price: 291,
           description: "Full fitting alteration",
           time: "24-48 hours",
-          image: femaleTunic,
+          image: femaleKurti, // Using kurti image for tunic
           variants: [
             { name: "Full Fitting", price: 291 },
           ],
@@ -393,7 +385,7 @@ const femaleServices: ServiceCategory = {
           price: 91,
           description: "Length or waist adjustment",
           time: "24-48 hours",
-          image: femaleJeans,
+          image: femalePants, // Using pants image for jeans
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 91 },
