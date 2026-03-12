@@ -317,7 +317,7 @@ export const Hero = () => {
                       onClick={() => handleGenderSelect('male')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'male'
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
+                        : 'bg-[hsl(0,0%,75%)] text-[hsl(0,0%,6%)] hover:bg-[hsl(0,0%,65%)]'
                         }`}
                     >
                       <User className="w-5 h-5" />
@@ -327,7 +327,7 @@ export const Hero = () => {
                       onClick={() => handleGenderSelect('female')}
                       className={`flex-1 py-3 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${selectedGender === 'female'
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
+                        : 'bg-[hsl(0,0%,75%)] text-[hsl(0,0%,6%)] hover:bg-[hsl(0,0%,65%)]'
                         }`}
                     >
                       <Users className="w-5 h-5" />
@@ -345,17 +345,17 @@ export const Hero = () => {
                             onClick={() => handleCategorySelect(subcategory.name)}
                             className={`w-full py-3 px-4 rounded-lg transition-all flex items-center justify-between ${selectedCategory === subcategory.name
                               ? 'bg-primary/10 border border-primary/30 text-foreground'
-                              : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
+                              : 'bg-[hsl(0,0%,75%)] text-[hsl(0,0%,6%)] hover:bg-[hsl(0,0%,65%)]'
                               }`}
                           >
                             <div className="flex items-center gap-3">
-                              <Package className="w-5 h-5 text-foreground" />
-                              <span className="text-sm font-semibold text-foreground">{subcategory.name}</span>
+                              <Package className={`w-5 h-5 ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`} />
+                              <span className={`text-sm font-semibold ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`}>{subcategory.name}</span>
                             </div>
                             {expandedCategory === subcategory.name ? (
-                              <ChevronUp className="w-4 h-4 text-foreground" />
+                              <ChevronUp className={`w-4 h-4 ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`} />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-foreground" />
+                              <ChevronDown className={`w-4 h-4 ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`} />
                             )}
                           </button>
 
