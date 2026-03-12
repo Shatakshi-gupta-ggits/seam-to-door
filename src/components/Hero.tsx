@@ -345,7 +345,7 @@ export const Hero = () => {
                             onClick={() => handleCategorySelect(subcategory.name)}
                             className={`w-full py-3 px-4 rounded-lg transition-all flex items-center justify-between ${selectedCategory === subcategory.name
                               ? 'bg-primary/10 border border-primary/30 text-foreground'
-                              : 'bg-muted text-foreground hover:bg-muted/80 hover:text-foreground'
+                              : 'bg-[hsl(0,0%,75%)] text-[hsl(0,0%,6%)] hover:bg-[hsl(0,0%,65%)]'
                               }`}
                           >
                             <div className="flex items-center gap-3">
