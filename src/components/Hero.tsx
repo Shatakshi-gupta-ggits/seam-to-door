@@ -349,13 +349,13 @@ export const Hero = () => {
                               }`}
                           >
                             <div className="flex items-center gap-3">
-                              <Package className="w-5 h-5 text-foreground" />
-                              <span className="text-sm font-semibold text-foreground">{subcategory.name}</span>
+                              <Package className={`w-5 h-5 ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`} />
+                              <span className={`text-sm font-semibold ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`}>{subcategory.name}</span>
                             </div>
                             {expandedCategory === subcategory.name ? (
-                              <ChevronUp className="w-4 h-4 text-foreground" />
+                              <ChevronUp className={`w-4 h-4 ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`} />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-foreground" />
+                              <ChevronDown className={`w-4 h-4 ${selectedCategory === subcategory.name ? 'text-foreground' : 'text-[hsl(0,0%,6%)]'}`} />
                             )}
                           </button>
 
