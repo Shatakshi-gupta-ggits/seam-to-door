@@ -360,25 +360,14 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  {/* Phone OTP Button */}
+                  {/* Email Button */}
                   <Button
                     type="button"
                     variant="outline"
                     className="w-full h-12"
-                    onClick={() => setAuthMode('phone')}
-                  >
-                    <Phone className="w-5 h-5 mr-2" />
-                    Phone Number (OTP)
-                  </Button>
-
-                  {/* Email Button */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
                     onClick={() => setAuthMode('email')}
                   >
-                    <Mail className="w-4 h-4 mr-2" />
+                    <Mail className="w-5 h-5 mr-2" />
                     Continue with Email
                   </Button>
                 </div>

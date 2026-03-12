@@ -622,6 +622,49 @@ const Booking = () => {
 
     await handleSubmit(formDataToSubmit);
     
+    // Save order to Supabase for tracking
+    try {
+      const orderNumber = `MRF-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+      const pickupAddress = `${formData.houseNumber}, ${formData.streetArea}, ${formData.place}, ${formData.pincode}`;
+      
+      // Get user_id from auth or phone auth
+      const { data: { user: supaUser } } = await supabase.auth.getUser();
+      const phoneAuth = localStorage.getItem('phone_auth');
+      const userId = supaUser?.id || (phoneAuth ? JSON.parse(phoneAuth).phone : null);
+      
+      if (userId) {
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            order_number: orderNumber,
+            user_id: userId,
+            total_amount: totalAmount,
+            pickup_address: pickupAddress,
+            pickup_date: date ? date.toISOString() : null,
+            status: 'pending' as const,
+            payment_status: 'pending',
+            notes: `Pickup Time: ${time || 'Not specified'}`,
+          })
+          .select()
+          .single();
+
+        if (!orderError && orderData) {
+          // Save order items
+          const orderItems = selectedServices.map(s => ({
+            order_id: orderData.id,
+            service_id: s.id === 'custom-alteration' ? s.id : s.id,
+            service_name: s.selectedVariant ? `${s.name} (${s.selectedVariant.name})` : s.name,
+            quantity: s.quantity,
+            price: s.price,
+          }));
+
+          await supabase.from('order_items').insert(orderItems);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to save order to database:', err);
+    }
+    
     // Clear cart on successful submission
     if (!state.errors) {
       clearCart();

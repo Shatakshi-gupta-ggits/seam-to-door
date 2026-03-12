@@ -53,8 +53,34 @@ const Bookings = () => {
   }, []);
 
   const fetchOrders = async () => {
-    // Supabase calls removed - database no longer in use
-    setLoading(false);
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: ordersData, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Failed to load bookings');
+      } else {
+        setOrders(ordersData || []);
+      }
+    } catch (err) {
+      console.error('Fetch orders error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFasterDelivery = (orderId: string, orderNumber: string) => {
