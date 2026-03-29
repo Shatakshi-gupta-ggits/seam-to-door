@@ -5,13 +5,14 @@ import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Import service images for carousel
-import serviceBlazer from "@/assets/service-blazer.jpg";
-import serviceDress from "@/assets/service-dress.jpg";
-import serviceEthnic from "@/assets/service-ethnic.jpg";
-import serviceKurti from "@/assets/service-kurti.jpg";
-import servicePants from "@/assets/service-pants.jpg";
-import serviceShirt from "@/assets/service-shirt.jpg";
+// Import service images for carousel - using new ourServices images
+import serviceBlazer from "/Blazer-ourServices.png";
+import serviceDress from "/DressFitting-ourServices.png";
+import serviceEthnic from "/EthnicWear-ourServices.png";
+import serviceKurti from "/Kurti&Tunic-ourServices.png";
+import servicePants from "/Pant&Tourser-ourServices.png";
+import serviceShirt from "/PerfectShirtFitting-ourServices.png";
+import serviceCustom from "/CustomAlterationService-ourServices.png";
 
 const carouselImages = [
   {
@@ -49,6 +50,12 @@ const carouselImages = [
     alt: "Kurti and tunic alteration",
     title: "Kurti & Tunics",
     subtitle: "Comfortable & stylish alterations",
+  },
+  {
+    src: serviceCustom,
+    alt: "Custom alteration services",
+    title: "Custom Services",
+    subtitle: "Specialized alterations for unique needs",
   },
 ];
 
