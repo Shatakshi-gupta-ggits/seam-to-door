@@ -1,24 +1,38 @@
-// Male outfit images - realistic photos
-import malePant from "@/assets/services/male-pant.jpg";
-import maleJeans from "@/assets/services/male-jeans.jpg";
-import maleShirt from "@/assets/services/male-shirt.jpg";
-import maleTshirt from "@/assets/services/male-tshirt.jpg";
-import maleKurta from "@/assets/services/male-kurta-new.jpg";
-import maleSherwani from "@/assets/services/male-sherwani.jpg";
-import maleBlazer from "@/assets/services/male-blazer.jpg";
-import maleNehruJacket from "@/assets/services/male-nehru-jacket.jpg";
-import malePyjama from "@/assets/services/male-pyjama.jpg";
-import maleChinos from "@/assets/services/male-chinos.jpg";
-import maleTrousers from "@/assets/services/male-trousers.jpg";
-import maleShorts from "@/assets/services/male-shorts.jpg";
+// Male outfit images - using new PNG files from public folder
+import malePant from "/MalePant.png";
+import maleJeans from "/MaleJeans.png";
+import maleShirt from "/MaleShirt.png";
+import maleTshirt from "/MaleTSHIRT.png";
+import maleKurta from "/MaleKurta.png";
+import maleSherwani from "/MaleSherwani.png";
+import maleBlazer from "/MaleBlazer.png";
+import maleNehruJacket from "/NehruJacket.png";
+import malePyjama from "/MalePyjama.png";
+import maleChinos from "/MaleChinos.png";
+import maleTrousers from "/MaleTrouser.png";
+import maleShorts from "/MaleShorts.png";
+import maleBandhgala from "/MaleBandhgala.png";
+import maleIndoWestern from "/MaleIndoWestern.png";
 
 // Female outfit images - using new PNG files from public folder
-import femaleKurti from "/FEMALEKURTA.png";
+import femaleKurti from "/FemaleKurti.png";
 import femaleSalwar from "/FemaleSalwar.png";
 import femalePalazzo from "/FemalePalazzo.png";
 import femalePants from "/FemalePant.png";
 import femaleTrouser from "/FemaleTrouser.png";
 import femaleShirt from "/finalFEMALESHIRT.png";
+import femaleTop from "/FemaleTop.png";
+import femaleTunic from "/FemaleTunic.png";
+import femaleJeans from "/FemaleJeans.png";
+
+// Our Services section images
+import blazerOurServices from "/Blazer-ourServices.png";
+import customAlterationOurServices from "/CustomAlterationService-ourServices.png";
+import dressFittingOurServices from "/DressFitting-ourServices.png";
+import ethnicWearOurServices from "/EthnicWear-ourServices.png";
+import kurtiTunicOurServices from "/Kurti&Tunic-ourServices.png";
+import pantTrouserOurServices from "/Pant&Tourser-ourServices.png";
+import perfectShirtOurServices from "/PerfectShirtFitting-ourServices.png";
 
 export interface ServiceVariant {
   name: string;
@@ -242,7 +256,7 @@ const maleServices: ServiceCategory = {
           price: 291,
           description: "Sleeves or full fitting alteration",
           time: "72-96 hours",
-          image: maleNehruJacket,
+          image: maleBandhgala,
           variants: [
             { name: "Sleeves", price: 291 },
             { name: "Full Fitting", price: 791 },
@@ -256,7 +270,7 @@ const maleServices: ServiceCategory = {
           price: 1091,
           description: "Full fitting alteration",
           time: "72-96 hours",
-          image: maleNehruJacket,
+          image: maleIndoWestern,
           variants: [
             { name: "Full Fitting", price: 1091 },
           ],
@@ -298,7 +312,7 @@ const femaleServices: ServiceCategory = {
           price: 141,
           description: "Side fitting alteration",
           time: "24 hours",
-          image: femaleShirt, // Using female shirt image for top
+          image: femaleTop,
           variants: [
             { name: "Side Fitting", price: 141 },
           ],
@@ -325,7 +339,7 @@ const femaleServices: ServiceCategory = {
           price: 291,
           description: "Full fitting alteration",
           time: "24-48 hours",
-          image: femaleKurti, // Using kurti image for tunic
+          image: femaleTunic,
           variants: [
             { name: "Full Fitting", price: 291 },
           ],
@@ -385,7 +399,7 @@ const femaleServices: ServiceCategory = {
           price: 91,
           description: "Length or waist adjustment",
           time: "24-48 hours",
-          image: femalePants, // Using pants image for jeans
+          image: femaleJeans,
           variants: [
             { name: "Length", price: 141 },
             { name: "Waist", price: 91 },
@@ -428,7 +442,7 @@ const otherServices: ServiceCategory = {
           price: 0, // Price will be determined by backend team
           description: "Describe your specific alteration needs (e.g., uniform fitting, special garment alterations, etc.). Our team will call you to discuss pricing and requirements.",
           time: "Varies based on requirement",
-          image: maleShirt, // Using a generic image
+          image: customAlterationOurServices,
         },
       ],
     },
