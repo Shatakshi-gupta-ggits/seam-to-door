@@ -229,12 +229,12 @@ const maleServices: ServiceCategory = {
           category: "male",
           subcategory: "ethnic-wear",
           price: 391,
-          description: "Sleeves or full fitting alteration",
+          description: "Length or side alteration",
           time: "72-96 hours",
           image: maleSherwani,
           variants: [
-            { name: "Sleeves", price: 391 },
-            { name: "Full Fitting", price: 1091 },
+            { name: "Sherwani Length", price: 391 },
+            { name: "Side Alteration", price: 401 },
           ],
         },
         {
