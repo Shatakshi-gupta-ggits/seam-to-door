@@ -58,6 +58,8 @@ const allTimeSlots = [
   { time: "06:00 PM", hour: 18, minute: 0 },
   { time: "06:30 PM", hour: 18, minute: 30 },
   { time: "07:00 PM", hour: 19, minute: 0 },
+  { time: "07:30 PM", hour: 19, minute: 30 },
+  { time: "08:00 PM", hour: 20, minute: 0 },
 ];
 
 // Helper to get available time slots based on selected date
