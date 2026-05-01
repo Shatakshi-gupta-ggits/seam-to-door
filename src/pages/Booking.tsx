@@ -78,16 +78,11 @@ const getAvailableTimeSlots = (selectedDate: Date | undefined) => {
   }
   
   // For today, only show slots at least 1 hour from now
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const minSlotHour = currentHour + 1; // At least 1 hour gap
-  
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const minMinutes = nowMinutes + 60; // 1 hour gap
+
   return allTimeSlots
-    .filter(slot => {
-      if (slot.hour > minSlotHour) return true;
-      if (slot.hour === minSlotHour && slot.minute >= currentMinute) return true;
-      return false;
-    })
+    .filter(slot => (slot.hour * 60 + slot.minute) >= minMinutes)
     .map(s => s.time);
 };
 
