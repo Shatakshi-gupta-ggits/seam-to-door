@@ -1161,31 +1161,63 @@ const Booking = () => {
                   </Popover>
                 </div>
 
-                <div>
-                  <Label htmlFor="time">Select Time *</Label>
-                  <select
-                    id="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    required
-                    className="mt-1.5 w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  >
-                    <option value="" disabled>
-                      Select time slot
-                    </option>
-                    {getAvailableTimeSlots(date).map((slot) => (
-                      <option key={slot} value={slot}>
-                        {slot}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {date && new Date(date).toDateString() === new Date().toDateString() 
-                      ? "Same-day slots available (1hr minimum from now)"
-                      : "Choose a convenient pickup time"}
-                  </p>
-                </div>
+                {(() => {
+                  const isToday = date && new Date(date).toDateString() === new Date().toDateString();
+                  const availableSlots = getAvailableTimeSlots(date);
+                  const noSlotsToday = isToday && availableSlots.length === 0;
+                  return (
+                    <div>
+                      <Label htmlFor="time" className={noSlotsToday ? "text-destructive" : ""}>
+                        Select Time *
+                      </Label>
+                      <select
+                        id="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                        required
+                        disabled={noSlotsToday}
+                        className={cn(
+                          "mt-1.5 w-full h-10 rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                          noSlotsToday ? "border-destructive ring-2 ring-destructive/40" : "border-input"
+                        )}
+                      >
+                        <option value="" disabled>
+                          {noSlotsToday ? "No time slots available today" : "Select time slot"}
+                        </option>
+                        {availableSlots.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
+                      </select>
+
+                      {noSlotsToday ? (
+                        <div className="mt-2 rounded-md border-2 border-destructive bg-destructive/10 p-3">
+                          <p className="text-sm font-semibold text-destructive flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            Sorry! No pickup slots left for today.
+                          </p>
+                          <p className="text-xs text-destructive/90 mt-1">
+                            We need at least <strong>1 hour</strong> before pickup to prepare.
+                            Our pickup hours are <strong>9:00 AM – 8:00 PM</strong>.
+                            Please select <strong>tomorrow's date</strong> to book a slot.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
+                          <p className="text-xs text-foreground flex items-start gap-1.5">
+                            <Clock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-primary" />
+                            <span>
+                              <strong>Pickup time: 9:00 AM – 8:00 PM.</strong>{" "}
+                              Please book at least <strong>1 hour before</strong> your pickup time.
+                              {isToday && " (Today's slots show only times 1 hour from now.)"}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
