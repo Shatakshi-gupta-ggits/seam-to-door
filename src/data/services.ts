@@ -302,10 +302,11 @@ const femaleServices: ServiceCategory = {
           category: "female",
           subcategory: "top-wear",
           price: 91,
-          description: "Sleeve or side fitting alteration",
+          description: "Length, sleeve or side fitting alteration",
           time: "24-48 hours",
           image: femaleKurti,
           variants: [
+            { name: "Length", price: 112 },
             { name: "Sleeve", price: 91 },
             { name: "Side Fitting", price: 141 },
           ],
