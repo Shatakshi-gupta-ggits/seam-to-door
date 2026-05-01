@@ -254,16 +254,18 @@ const maleServices: ServiceCategory = {
         },
         {
           id: "male-bandhgala",
-          name: "Bandhgala Suit",
+          name: "Jodhpuri Suit",
           category: "male",
           subcategory: "ethnic-wear",
-          price: 291,
-          description: "Sleeves or full fitting alteration",
+          price: 251,
+          description: "Length, sleeves, back or full alteration",
           time: "72-96 hours",
           image: maleBandhgala,
           variants: [
-            { name: "Sleeves", price: 291 },
-            { name: "Full Fitting", price: 791 },
+            { name: "Jodhpuri Length", price: 291 },
+            { name: "Sleeves", price: 251 },
+            { name: "Back Alteration", price: 291 },
+            { name: "Full Alteration", price: 799 },
           ],
         },
         {
